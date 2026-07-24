@@ -1,0 +1,63 @@
+﻿{% extends "base.html" %}
+
+{% block title %}Widget de soporte QUIZORA{% endblock %}
+
+{% block content %}
+<div id="quizora-chat-widget" class="quizora-chat-widget">
+  <div id="chat-messages" class="chat-messages"></div>
+  <div class="chat-input-row">
+    <input id="chat-input" type="text" placeholder="Escribe tu consulta..." />
+    <button id="chat-send">Enviar</button>
+  </div>
+</div>
+
+<script>
+  const apiUrl = "/webhook";  // si el widget se sirve desde el mismo dominio del microservicio
+
+  const messagesDiv = document.getElementById("chat-messages");
+  const input = document.getElementById("chat-input");
+  const sendBtn = document.getElementById("chat-send");
+
+  function addMessage(text, from) {
+    const p = document.createElement("p");
+    p.className = from === "user" ? "msg-user" : "msg-bot";
+    p.textContent = text;
+    messagesDiv.appendChild(p);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  }
+
+  async function sendMessage() {
+    const texto = input.value.trim();
+    if (!texto) return;
+    addMessage("Tú: " + texto, "user");
+    input.value = "";
+
+    try {
+      const resp = await fetch(apiUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mensaje: texto, origen: "widget_web" })
+      });
+
+      const data = await resp.json();
+      addMessage("Quizora: " + data.mensaje, "bot");
+
+      if (data.tipo === "venta" && data.form_url) {
+        const link = document.createElement("a");
+        link.href = data.form_url;
+        link.target = "_blank";
+        link.textContent = "Ir al formulario de suscripción";
+        link.className = "chat-link";
+        messagesDiv.appendChild(link);
+      }
+    } catch (err) {
+      addMessage("Hubo un error al procesar tu mensaje. Intenta nuevamente.", "bot");
+    }
+  }
+
+  sendBtn.addEventListener("click", sendMessage);
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") sendMessage();
+  });
+</script>
+{% endblock %}
