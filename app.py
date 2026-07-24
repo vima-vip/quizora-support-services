@@ -108,42 +108,42 @@ def validar_suscripcion():
     if not id_registro:
         return redirect(url_for("admin_suscripciones"))
 
-    # 1. Leer todas las ventas y encontrar la fila correspondiente
-    rows = obtener_registros_ventas()
-    row = next((r for r in rows if str(r.get("id_registro")) == id_registro), None)
+    # Usamos gspread directo solo aquí para localizar la fila
+    client = get_sheet_client()
+    sheet = client.open_by_key(SPREADSHEET_ID).worksheet("REGISTROS_SUSCRIPCION")
 
-    if not row:
-        # si no se encuentra, volvemos al dashboard
+    # Buscar la fila por id_registro
+    celdas_id = sheet.findall(id_registro)
+    if not celdas_id:
         return redirect(url_for("admin_suscripciones"))
 
-    # 2. Marcar la fila como Verificada (usa tu helper de sheets_client)
-    # aquí asumimos que actualizar_registro_ventas sabe localizar la fila por id_registro,
-    # si no, podrías necesitar pasar el índice también
-    actualizar_registro_ventas(
-        row_index=row.get("row_index", None),  # ajusta según tu implementación
-        estado_verificacion="Verificado",
-    )
+    fila_idx = celdas_id[0].row
 
-    # 3. Crear usuario en Neon con tus reglas (usuario + password)
-    resultado = crear_usuario_quizora(row)
+    # Leer la fila completa (A-L) y armar dict con encabezados
+    valores = sheet.row_values(fila_idx)
+    encabezados = sheet.row_values(1)
+    row_dict = {encabezados[i]: valores[i] if i < len(valores) else "" for i in range(len(encabezados))}
 
-    # 4. Asignar cuestionarios iniciales según especialidad
-    specialty_code = row.get("especialidad")
+    # 1. Marcar estado_verificac como Verificado en el Sheet
+    sheet.update_cell(fila_idx, 8, "Verificado")  # H: estado_verificac
+
+    # 2. Crear usuario en Neon con tus reglas
+    resultado = crear_usuario_quizora(row_dict)
+
+    # 3. Asignar cuestionarios iniciales según especialidad
+    specialty_code = row_dict.get("especialidad")
     asignar_quices_iniciales(resultado["user_id"], specialty_code)
 
-    # 5. Actualizar credenciales y fecha_activacion en el Sheet
-    actualizar_registro_ventas(
-        row_index=row.get("row_index", None),
-        usuario_generado=resultado["username"],
-        password_generado_hash=resultado["password_hash"],
-        fecha_activacion_iso=datetime.utcnow().isoformat(),
-    )
+    # 4. Actualizar usuario, password y fecha_activacion en el Sheet
+    sheet.update_cell(fila_idx, 9, resultado["username"])          # I: usuario_generado
+    sheet.update_cell(fila_idx, 10, resultado["raw_password"])     # J: password_generado
+    sheet.update_cell(fila_idx, 11, datetime.utcnow().isoformat()) # K: fecha_activacion
 
-    # 6. Notas admin
+    # 5. Notas admin
     nota = "Validado desde dashboard admin QUIZORA."
     if resultado["num_iniciales_usadas"] == 3:
         nota += " Username creado con 3 iniciales por colisión."
-    actualizar_notas_admin(row.get("row_index", None), nota)
+    sheet.update_cell(fila_idx, 12, nota)  # L: notas_admin
 
     return redirect(url_for("admin_suscripciones"))
 
