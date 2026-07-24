@@ -15,14 +15,15 @@ from sheets_client import (
 import gspread
 from google.oauth2.service_account import Credentials
 
-from quizora_users import crear_usuario_quizora, asignar_quices_iniciales
+# ya no usamos crear_usuario_quizora/asignar_quices_iniciales aquí
+# from quizora_users import crear_usuario_quizora, asignar_quices_iniciales
 
 # Config Sheets y QUIZORA
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
 SPREADSHEET_ID = os.getenv("QUIZORA_VENTAS_SHEET_ID")
 SERVICE_ACCOUNT_JSON = os.getenv("GOOGLE_SERVICE_ACCOUNT_JSON")
-QUIZORA_API_URL = os.getenv("QUIZORA_API_URL")        
-ADMIN_API_TOKEN = os.getenv("ADMIN_API_TOKEN")         # mismo valor que en QUIZORA
+QUIZORA_API_URL = os.getenv("QUIZORA_API_URL")
+ADMIN_API_TOKEN = os.getenv("ADMIN_API_TOKEN")  # mismo valor que en QUIZORA
 
 
 def get_sheet_client():
@@ -105,7 +106,6 @@ def registro_suscripcion():
 @app.get("/admin/suscripciones")
 def admin_suscripciones():
     suscripciones = obtener_suscripciones_pendientes()
-    # admin_suscripciones.html mostrará la tabla con botón "Validar"
     return render_template("admin_suscripciones.html", suscripciones=suscripciones)
 
 
@@ -164,33 +164,10 @@ def validar_suscripcion():
     return redirect(url_for("admin_suscripciones"))
 
 
-# Worker antiguo: si deseas seguir procesando verificados en lote vía API directa a Neon
-@app.post("/procesar_verificados")
-def procesar_verificados():
-    rows = obtener_registros_ventas()
-    procesados = []
-
-    for idx, row in enumerate(rows, start=2):  # fila 2 = primera después de encabezados
-        if row["estado_verificacion"] == "Verificado" and not row["usuario_generado"]:
-            resultado = crear_usuario_quizora(row)
-
-            nota_extra = ""
-            if resultado["num_iniciales_usadas"] == 3:
-                nota_extra = "Username creado con 3 iniciales por colisión."
-
-            actualizar_registro_ventas(
-                row_index=idx,
-                usuario_generado=resultado["username"],
-                password_generado_hash=resultado["password_hash"],
-                fecha_activacion_iso=datetime.utcnow().isoformat()
-            )
-
-            if nota_extra:
-                actualizar_notas_admin(idx, nota_extra)
-
-            procesados.append(resultado["username"])
-
-    return jsonify({"procesados": procesados})
+# Si de momento no vas a usar el worker directo a Neon, puedes comentarlo o dejarlo:
+# @app.post("/procesar_verificados")
+# def procesar_verificados():
+#     ...
 
 
 if __name__ == "__main__":
