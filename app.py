@@ -10,34 +10,17 @@ from sheets_client import (
     actualizar_registro_ventas,
     actualizar_notas_admin,
     registrar_venta,
+    get_client,  # IMPORTANTE: reutilizar el cliente de sheets_client
 )
 
-import gspread
-from google.oauth2.service_account import Credentials
+# Ya no necesitas importar gspread ni Credentials aquí
 
-# ya no usamos crear_usuario_quizora/asignar_quices_iniciales aquí
-# from quizora_users import crear_usuario_quizora, asignar_quices_iniciales
+from quizora_users import crear_usuario_quizora, asignar_quices_iniciales  # si sigues usando el worker
 
-# Config Sheets y QUIZORA
-SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
-SPREADSHEET_ID = os.getenv("QUIZORA_VENTAS_SHEET_ID")
-SERVICE_ACCOUNT_JSON = os.getenv("GOOGLE_SERVICE_ACCOUNT_JSON")
+# Config QUIZORA
+SPREADSHEET_ID = os.getenv("QUIZORA_VENTAS_SHEET_ID")  # puedes omitir si usas VENTAS_DOC_NAME/VENTAS_SHEET_NAME
 QUIZORA_API_URL = os.getenv("QUIZORA_API_URL")
-ADMIN_API_TOKEN = os.getenv("ADMIN_API_TOKEN")  # mismo valor que en QUIZORA
-
-
-def get_sheet_client():
-    """
-    Devuelve un cliente gspread autorizado con el service account.
-    """
-    if not SERVICE_ACCOUNT_JSON:
-        raise RuntimeError("GOOGLE_SERVICE_ACCOUNT_JSON no está configurado.")
-    creds = Credentials.from_service_account_file(
-        SERVICE_ACCOUNT_JSON,
-        scopes=SCOPES
-    )
-    client = gspread.authorize(creds)
-    return client
+ADMIN_API_TOKEN = os.getenv("ADMIN_API_TOKEN")
 
 
 def obtener_suscripciones_pendientes():
@@ -57,7 +40,7 @@ def obtener_suscripciones_pendientes():
 
 # Crear la app Flask
 app = Flask(__name__, template_folder="templates", static_folder="static")
-CORS(app)  # permitir peticiones desde el dominio público de QUIZORA
+CORS(app)
 
 
 # Healthcheck
@@ -66,13 +49,13 @@ def health():
     return jsonify({"status": "ok", "time": datetime.utcnow().isoformat()})
 
 
-# Widget de chat (iframe)
+# Widget de chat
 @app.get("/widget")
 def widget():
     return render_template("widget.html")
 
 
-# Webhook del widget
+# Webhook
 @app.post("/webhook")
 def webhook():
     payload = request.json or {}
@@ -84,13 +67,13 @@ def webhook():
     return jsonify(respuesta)
 
 
-# Formulario de suscripción + QR (modal de pago)
+# Formulario de suscripción
 @app.get("/form-suscripcion")
 def form_suscripcion():
     return render_template("modal_pago.html")
 
 
-# Registro de suscripción: guarda en QUIZORA_Ventas / REGISTROS_SUSCRIPCION
+# Registro de suscripción
 @app.post("/registro-suscripcion")
 def registro_suscripcion():
     datos = request.json or {}
@@ -102,22 +85,23 @@ def registro_suscripcion():
         return jsonify({"status": "error", "detail": str(e)}), 500
 
 
-# DASHBOARD: lista suscripciones pendientes para el admin
+# Dashboard admin
 @app.get("/admin/suscripciones")
 def admin_suscripciones():
     suscripciones = obtener_suscripciones_pendientes()
     return render_template("admin_suscripciones.html", suscripciones=suscripciones)
 
 
-# Acción de VALIDAR: clic del admin que dispara creación de usuario en QUIZORA
+# Acción de VALIDAR
 @app.post("/admin/validar-suscripcion")
 def validar_suscripcion():
     id_registro = request.form.get("id_registro")
     if not id_registro:
         return redirect(url_for("admin_suscripciones"))
 
-    client = get_sheet_client()
-    sheet = client.open_by_key(SPREADSHEET_ID).worksheet("REGISTROS_SUSCRIPCION")
+    gc = get_client()
+    sh = gc.open("QUIZORA_Ventas")  # usamos VENTAS_DOC_NAME de sheets_client
+    sheet = sh.worksheet("REGISTROS_SUSCRIPCION")  # VENTAS_SHEET_NAME
 
     # 1. Buscar la fila por id_registro
     celdas_id = sheet.findall(id_registro)
@@ -129,16 +113,16 @@ def validar_suscripcion():
     encabezados = sheet.row_values(1)
     row = {encabezados[i]: valores[i] if i < len(valores) else "" for i in range(len(encabezados))}
 
-    # 2. Marcar estado Verificado en el Sheet
+    # 2. Marcar estado Verificado
     sheet.update_cell(fila_idx, 8, "Verificado")  # H: estado_verificac
 
-    # 3. Tomar usuario, contraseña y especialidad desde el Sheet
+    # 3. Tomar usuario, contraseña y especialidad
     username = row.get("usuario_generado")
     raw_password = row.get("password_generado")
     specialty_code = row.get("especialidad")
     plan = "premium"
 
-    # 4. Llamar al endpoint interno de QUIZORA
+    # 4. Llamar a QUIZORA
     resp = requests.post(
         f"{QUIZORA_API_URL}/superadmin/api/register",
         json={
@@ -153,21 +137,41 @@ def validar_suscripcion():
 
     if resp.status_code == 200:
         data = resp.json()
-        # 5. Actualizar fecha_activacion y notas_admin en el Sheet
         sheet.update_cell(fila_idx, 11, datetime.utcnow().isoformat())  # K: fecha_activacion
         nota = f"Usuario creado en QUIZORA (id={data.get('user_id')})"
-        sheet.update_cell(fila_idx, 12, nota)                            # L: notas_admin
+        sheet.update_cell(fila_idx, 12, nota)
     else:
-        # Dejar constancia del error
         sheet.update_cell(fila_idx, 12, f"Error al crear usuario: {resp.text}")
 
     return redirect(url_for("admin_suscripciones"))
 
 
-# Si de momento no vas a usar el worker directo a Neon, puedes comentarlo o dejarlo:
-# @app.post("/procesar_verificados")
-# def procesar_verificados():
-#     ...
+# Worker opcional (si sigues usando flujo directo a Neon)
+@app.post("/procesar_verificados")
+def procesar_verificados():
+    rows = obtener_registros_ventas()
+    procesados = []
+
+    for idx, row in enumerate(rows, start=2):
+        if row["estado_verificacion"] == "Verificado" and not row["usuario_generado"]:
+            resultado = crear_usuario_quizora(row)
+            nota_extra = ""
+            if resultado["num_iniciales_usadas"] == 3:
+                nota_extra = "Username creado con 3 iniciales por colisión."
+
+            actualizar_registro_ventas(
+                row_index=idx,
+                usuario_generado=resultado["username"],
+                password_generado_hash=resultado["password_hash"],
+                fecha_activacion_iso=datetime.utcnow().isoformat()
+            )
+
+            if nota_extra:
+                actualizar_notas_admin(idx, nota_extra)
+
+            procesados.append(resultado["username"])
+
+    return jsonify({"procesados": procesados})
 
 
 if __name__ == "__main__":
