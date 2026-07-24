@@ -4,7 +4,7 @@ from sheets_client import buscar_faq
 INTENCION_COMPRA_KEYWORDS = [
     "comprar", "inscribirme", "pagar", "suscribirme", "matricularme",
     "adquirir", "comprar suscripción", "crear cuenta", "quiero una cuenta",
-    "quiero que me crees una cuenta", "ya pagué", "ya te pagué"
+    "quiero que me crees una cuenta", "acceso", "como hago para tener una cuenta"
 ]
 
 # URL del formulario de suscripción del microservicio
