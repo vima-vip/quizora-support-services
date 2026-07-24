@@ -1,0 +1,45 @@
+﻿{% extends "base.html" %}
+
+{% block title %}Validación de suscripciones QUIZORA{% endblock %}
+
+{% block content %}
+<h1>Suscripciones pendientes de validación</h1>
+
+<table border="1" cellpadding="6" cellspacing="0">
+  <thead>
+    <tr>
+      <th>ID registro</th>
+      <th>Fecha</th>
+      <th>Nombre</th>
+      <th>Apellido</th>
+      <th>Especialidad</th>
+      <th>DNI</th>
+      <th>Código Yape</th>
+      <th>Usuario generado</th>
+      <th>Clave generada</th>
+      <th>Acción</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for s in suscripciones %}
+    <tr>
+      <td>{{ s.id_registro }}</td>
+      <td>{{ s.fecha_hora }}</td>
+      <td>{{ s.nombres }}</td>
+      <td>{{ s.primer_apellido }}</td>
+      <td>{{ s.especialidad }}</td>
+      <td>{{ s.dni }}</td>
+      <td>{{ s.codigo_transacc }}</td>
+      <td>{{ s.usuario_generado }}</td>
+      <td>{{ s.password_generado }}</td>
+      <td>
+        <form method="post" action="{{ url_for('validar_suscripcion') }}">
+          <input type="hidden" name="id_registro" value="{{ s.id_registro }}">
+          <button type="submit">Validar</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
