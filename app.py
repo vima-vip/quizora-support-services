@@ -21,15 +21,6 @@ SPREADSHEET_ID = os.getenv("QUIZORA_VENTAS_SHEET_ID")
 SERVICE_ACCOUNT_JSON = os.getenv("GOOGLE_SERVICE_ACCOUNT_JSON")
 
 
-def get_sheet_client():
-    creds = Credentials.from_service_account_file(
-        SERVICE_ACCOUNT_JSON,
-        scopes=SCOPES
-    )
-    client = gspread.authorize(creds)
-    return client
-
-
 def obtener_suscripciones_pendientes():
     """
     Usa obtener_registros_ventas() (que ya está configurado con Sheets)
