@@ -1,45 +1,201 @@
-﻿{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Suscripciones pendientes de validación</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 24px 16px;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f5f7fb;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+    }
 
-{% block title %}Validación de suscripciones QUIZORA{% endblock %}
+    .admin-card {
+      width: 100%;
+      max-width: 1100px;
+      background: #ffffff;
+      border-radius: 18px;
+      box-shadow: 0 16px 36px rgba(15, 23, 42, 0.18);
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      padding: 20px 22px 24px;
+      box-sizing: border-box;
+    }
 
-{% block content %}
-<h1>Suscripciones pendientes de validación</h1>
+    .admin-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.4);
+      padding-bottom: 8px;
+    }
 
-<table border="1" cellpadding="6" cellspacing="0">
-  <thead>
-    <tr>
-      <th>ID registro</th>
-      <th>Fecha</th>
-      <th>Nombre</th>
-      <th>Apellido</th>
-      <th>Especialidad</th>
-      <th>DNI</th>
-      <th>Código Yape</th>
-      <th>Usuario generado</th>
-      <th>Clave generada</th>
-      <th>Acción</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for s in suscripciones %}
-    <tr>
-      <td>{{ s.id_registro }}</td>
-      <td>{{ s.fecha_hora }}</td>
-      <td>{{ s.nombres }}</td>
-      <td>{{ s.primer_apellido }}</td>
-      <td>{{ s.especialidad }}</td>
-      <td>{{ s.dni }}</td>
-      <td>{{ s.codigo_transacc }}</td>
-      <td>{{ s.usuario_generado }}</td>
-      <td>{{ s.password_generado }}</td>
-      <td>
-        <form method="post" action="{{ url_for('validar_suscripcion') }}">
-          <input type="hidden" name="id_registro" value="{{ s.id_registro }}">
-          <button type="submit">Validar</button>
-        </form>
-      </td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
-{% endblock %}
+    .admin-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #111827;
+      margin: 0;
+    }
+
+    .admin-subtitle {
+      font-size: 12px;
+      color: #6b7280;
+      margin: 0;
+    }
+
+    .admin-header-right {
+      font-size: 11px;
+      color: #9ca3af;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+
+    thead {
+      background: #111827;
+      color: #f9fafb;
+    }
+
+    th, td {
+      padding: 8px 10px;
+      font-size: 12px;
+      text-align: left;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    th {
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    tbody tr:nth-child(even) {
+      background: #f9fafb;
+    }
+
+    tbody tr:hover {
+      background: #eef2ff;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .badge-pendiente {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .badge-verificado {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .action-btn {
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: none;
+      background: #111827;
+      color: #f9fafb;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .action-btn:hover {
+      background: #020617;
+    }
+
+    .empty-state {
+      margin-top: 16px;
+      font-size: 13px;
+      color: #6b7280;
+      text-align: center;
+    }
+
+    @media (max-width: 768px) {
+      .admin-card {
+        padding: 16px;
+      }
+
+      table {
+        font-size: 11px;
+      }
+
+      th, td {
+        padding: 6px 6px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="admin-card">
+    <div class="admin-header">
+      <div>
+        <h1 class="admin-title">Suscripciones pendientes de validación</h1>
+        <p class="admin-subtitle">
+          Revisa los pagos registrados y valida la creación de usuarios en QUIZORA.
+        </p>
+      </div>
+      <div class="admin-header-right">
+        Panel de administración QUIZORA Support
+      </div>
+    </div>
+
+    {% if suscripciones and suscripciones|length > 0 %}
+      <table>
+        <thead>
+          <tr>
+            <th>ID registro</th>
+            <th>Fecha</th>
+            <th>Nombre</th>
+            <th>Apellido</th>
+            <th>Especialidad</th>
+            <th>DNI</th>
+            <th>Código Yape</th>
+            <th>Usuario generado</th>
+            <th>Clave generada</th>
+            <th>Acción</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in suscripciones %}
+            <tr>
+              <td>{{ s.id_registro }}</td>
+              <td>{{ s.fecha_hora }}</td>
+              <td>{{ s.nombres }}</td>
+              <td>{{ s.primer_apellido }}</td>
+              <td>{{ s.especialidad }}</td>
+              <td>{{ s.dni }}</td>
+              <td>{{ s.codigo_transaccion_yape }}</td>
+              <td>{{ s.usuario_generado or '-' }}</td>
+              <td>{{ s.password_generado or '-' }}</td>
+              <td>
+                <form method="post" action="{{ url_for('validar_suscripcion') }}">
+                  <input type="hidden" name="id_registro" value="{{ s.id_registro }}">
+                  <button type="submit" class="action-btn">Validar</button>
+                </form>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="empty-state">
+        No hay suscripciones pendientes de validación en este momento.
+      </p>
+    {% endif %}
+  </div>
+</body>
+</html>
