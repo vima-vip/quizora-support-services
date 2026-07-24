@@ -1,10 +1,34 @@
 {% extends "base.html" %}
 
-{% block title %}Widget de soporte QUIZORA{% endblock %}
+{% block title %}Asistente de soporte QUIZORA{% endblock %}
 
 {% block content %}
-<div id="quizora-chat-widget" class="quizora-chat-widget">
-  <div id="chat-messages" class="chat-messages"></div>
+<div class="quizora-chat-widget">
+  <!-- Encabezado del widget -->
+  <div class="widget-header">
+    <div class="widget-header-logo">Q</div>
+    <div class="widget-header-text">Asistente de soporte QUIZORA</div>
+  </div>
+
+  <!-- Área de mensajes (la usa tu JS) -->
+  <div id="chat-messages" class="chat-messages">
+    <!-- Opcional: mensaje inicial fijo -->
+    <p class="msg-bot">
+      Bienvenido, escribe tu consulta sobre QUIZORA y te ayudaremos a continuar.
+    </p>
+  </div>
+
+  <!-- Bloque del botón al formulario, siempre visible -->
+  <div class="payment-link-wrapper">
+    <p class="payment-link-text">
+      ¿Listo para adquirir tu suscripción? Completa el formulario de pago aquí:
+    </p>
+    <a href="{{ url_for('form_suscripcion') }}" class="payment-link-btn" target="_blank">
+      Ir al formulario de suscripción
+    </a>
+  </div>
+
+  <!-- Fila de input + botón (la usa tu JS) -->
   <div class="chat-input-row">
     <input id="chat-input" type="text" placeholder="Escribe tu consulta..." />
     <button id="chat-send">Enviar</button>
@@ -12,7 +36,7 @@
 </div>
 
 <script>
-  const apiUrl = "/webhook";  // el widget se sirve desde el mismo dominio del microservicio
+  const apiUrl = "/webhook";
 
   const messagesDiv = document.getElementById("chat-messages");
   const input = document.getElementById("chat-input");
@@ -42,6 +66,7 @@
       const data = await resp.json();
       addMessage("Quizora: " + data.mensaje, "bot");
 
+      // Si aún quieres insertar el link cuando el bot detecta venta:
       if (data.tipo === "venta" && data.form_url) {
         const link = document.createElement("a");
         link.href = data.form_url;
