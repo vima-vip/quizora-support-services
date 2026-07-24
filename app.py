@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify, render_template, redirect, url_for
 from flask_cors import CORS
 from datetime import datetime
 import os
+import requests
 
 from soporte import procesar_mensaje
 from sheets_client import (
@@ -10,17 +11,32 @@ from sheets_client import (
     actualizar_notas_admin,
     registrar_venta,
 )
+
 import gspread
 from google.oauth2.service_account import Credentials
 
 from quizora_users import crear_usuario_quizora, asignar_quices_iniciales
 
-# Config Sheets
+# Config Sheets y QUIZORA
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
 SPREADSHEET_ID = os.getenv("QUIZORA_VENTAS_SHEET_ID")
 SERVICE_ACCOUNT_JSON = os.getenv("GOOGLE_SERVICE_ACCOUNT_JSON")
-QUIZORA_API_URL = os.getenv("QUIZORA_API_URL")         
-ADMIN_API_TOKEN = os.getenv("ADMIN_API_TOKEN")  
+QUIZORA_API_URL = os.getenv("QUIZORA_API_URL")         # ej. https://quizora-jamu.onrender.com
+ADMIN_API_TOKEN = os.getenv("ADMIN_API_TOKEN")         # mismo valor que en QUIZORA
+
+
+def get_sheet_client():
+    """
+    Devuelve un cliente gspread autorizado con el service account.
+    """
+    if not SERVICE_ACCOUNT_JSON:
+        raise RuntimeError("GOOGLE_SERVICE_ACCOUNT_JSON no está configurado.")
+    creds = Credentials.from_service_account_file(
+        SERVICE_ACCOUNT_JSON,
+        scopes=SCOPES
+    )
+    client = gspread.authorize(creds)
+    return client
 
 
 def obtener_suscripciones_pendientes():
@@ -93,7 +109,7 @@ def admin_suscripciones():
     return render_template("admin_suscripciones.html", suscripciones=suscripciones)
 
 
-# Acción de VALIDAR: clic del admin que dispara creación de usuario
+# Acción de VALIDAR: clic del admin que dispara creación de usuario en QUIZORA
 @app.post("/admin/validar-suscripcion")
 def validar_suscripcion():
     id_registro = request.form.get("id_registro")
@@ -148,7 +164,7 @@ def validar_suscripcion():
     return redirect(url_for("admin_suscripciones"))
 
 
-# Worker antiguo: si deseas seguir procesando verificados en lote vía API
+# Worker antiguo: si deseas seguir procesando verificados en lote vía API directa a Neon
 @app.post("/procesar_verificados")
 def procesar_verificados():
     rows = obtener_registros_ventas()
@@ -156,7 +172,6 @@ def procesar_verificados():
 
     for idx, row in enumerate(rows, start=2):  # fila 2 = primera después de encabezados
         if row["estado_verificacion"] == "Verificado" and not row["usuario_generado"]:
-            # aquí podrías reutilizar procesar_registro_ventas(row) directamente
             resultado = crear_usuario_quizora(row)
 
             nota_extra = ""
