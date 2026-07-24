@@ -1,0 +1,46 @@
+﻿.quizora-chat-widget {
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 8px;
+  width: 320px;
+  font-family: system-ui, sans-serif;
+  font-size: 14px;
+}
+
+.chat-messages {
+  height: 220px;
+  overflow-y: auto;
+  margin-bottom: 6px;
+  background: #fafafa;
+  padding: 4px;
+}
+
+.chat-input-row {
+  display: flex;
+  gap: 4px;
+}
+
+#chat-input {
+  flex: 1;
+  padding: 4px 6px;
+}
+
+#chat-send {
+  padding: 4px 10px;
+}
+
+.msg-user {
+  text-align: right;
+  color: #333;
+}
+
+.msg-bot {
+  text-align: left;
+  color: #0055aa;
+}
+
+.chat-link {
+  display: inline-block;
+  margin-top: 4px;
+  color: #007bff;
+}
