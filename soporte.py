@@ -35,7 +35,6 @@ def procesar_mensaje(mensaje: str):
             "form_url": FORM_URL
         }
 
-    # Fallback a asesor con WhatsApp
     return {
         "mensaje": (
             "No encontré una respuesta automática para tu consulta. "
