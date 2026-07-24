@@ -21,7 +21,7 @@ from quizora_users import crear_usuario_quizora, asignar_quices_iniciales
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
 SPREADSHEET_ID = os.getenv("QUIZORA_VENTAS_SHEET_ID")
 SERVICE_ACCOUNT_JSON = os.getenv("GOOGLE_SERVICE_ACCOUNT_JSON")
-QUIZORA_API_URL = os.getenv("QUIZORA_API_URL")         # ej. https://quizora-jamu.onrender.com
+QUIZORA_API_URL = os.getenv("QUIZORA_API_URL")        
 ADMIN_API_TOKEN = os.getenv("ADMIN_API_TOKEN")         # mismo valor que en QUIZORA
 
 
