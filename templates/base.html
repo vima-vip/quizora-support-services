@@ -1,0 +1,17 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>{% block title %}QUIZORA · Soporte y Suscripción{% endblock %}</title>
+
+  <!-- CSS global del microservicio -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='widget.css') }}">
+</head>
+<body>
+
+  {% block content %}
+  <!-- Contenido específico de cada página (widget, formulario, etc.) -->
+  {% endblock %}
+
+</body>
+</html>
