@@ -10,8 +10,6 @@ from sheets_client import (
     actualizar_notas_admin,
     registrar_venta,
 )
-from quizora_users import procesar_registro_ventas  # usa crear_usuario_quizora + asignar quices + actualizar sheet
-
 import gspread
 from google.oauth2.service_account import Credentials
 
@@ -129,11 +127,23 @@ def validar_suscripcion():
     # Marcar estado_verificac como Verificado en el Sheet
     sheet.update_cell(fila_idx, 8, "Verificado")  # H: estado_verificac
 
-    # Procesar registro: crear usuario en Neon, asignar quices, actualizar credenciales y fecha_activacion
-    procesar_registro_ventas(row_dict)
+    # 1. Crear usuario en Neon con tus reglas (usuario + password)
+    resultado = crear_usuario_quizora(row_dict)
 
-    # Opcional: notas_admin
-    actualizar_notas_admin(fila_idx, "Validado desde dashboard admin QUIZORA.")
+    # 2. Asignar cuestionarios iniciales según especialidad
+    specialty_code = row_dict.get("especialidad")
+    asignar_quices_iniciales(resultado["user_id"], specialty_code)
+
+    # 3. Actualizar credenciales y fecha_activacion en el Sheet
+    sheet.update_cell(fila_idx, 9, resultado["username"])         # I: usuario_generado
+    sheet.update_cell(fila_idx, 10, resultado["raw_password"])    # J: password_generado
+    sheet.update_cell(fila_idx, 11, datetime.utcnow().isoformat()) # K: fecha_activacion
+
+    # 4. Notas admin opcionales
+    nota = "Validado desde dashboard admin QUIZORA."
+    if resultado["num_iniciales_usadas"] == 3:
+        nota += " Username creado con 3 iniciales por colisión."
+    sheet.update_cell(fila_idx, 12, nota)  # L: notas_admin
 
     return redirect(url_for("admin_suscripciones"))
 
