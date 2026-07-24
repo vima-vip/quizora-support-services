@@ -1,34 +1,37 @@
 from sheets_client import buscar_faq
 
+# Palabras que indican intención de compra / suscripción
 INTENCION_COMPRA_KEYWORDS = [
     "comprar", "inscribirme", "pagar", "suscribirme", "matricularme",
-    "adquirir", "comprar suscripción"
+    "adquirir", "comprar suscripción", "crear cuenta", "quiero una cuenta",
+    "quiero que me crees una cuenta", "ya pagué", "ya te pagué"
 ]
 
-FORM_URL = "https://tu-formulario.com"  # reemplaza con tu Google Form o formulario propio
+# URL del formulario de suscripción del microservicio
+FORM_URL = "https://quizora-support.onrender.com/form-suscripcion"
+
 
 def detectar_intencion_compra(mensaje: str) -> bool:
     m = mensaje.lower()
     return any(kw in m for kw in INTENCION_COMPRA_KEYWORDS)
 
+
 def procesar_mensaje(mensaje: str):
-    # 1. Intentar FAQ desde Sheet 1
+    # 1. Intentar FAQ desde AUTO_QUIZORA / BD
     match = buscar_faq(mensaje)
     if match:
-        respuesta = {
+        # match tiene: "respuesta" y "keyword"
+        return {
             "mensaje": match["respuesta"],
             "tipo": "faq",
-            "categoria": match["categoria"]
+            "keyword": match["keyword"]
         }
-        if match["requiere_humano"]:
-            respuesta["escalar"] = True
-        return respuesta
 
     # 2. Detectar intención de compra
     if detectar_intencion_compra(mensaje):
         return {
             "mensaje": (
-                "Para adquirir tu suscripción, realiza el pago por Yape "
+                "Para adquirir tu suscripción en QUIZORA, realiza el pago por Yape "
                 "y luego llena el formulario con tus datos y el código de transacción."
             ),
             "tipo": "venta",
