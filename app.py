@@ -19,6 +19,8 @@ from quizora_users import crear_usuario_quizora, asignar_quices_iniciales
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
 SPREADSHEET_ID = os.getenv("QUIZORA_VENTAS_SHEET_ID")
 SERVICE_ACCOUNT_JSON = os.getenv("GOOGLE_SERVICE_ACCOUNT_JSON")
+QUIZORA_API_URL = os.getenv("QUIZORA_API_URL")         
+ADMIN_API_TOKEN = os.getenv("ADMIN_API_TOKEN")  
 
 
 def obtener_suscripciones_pendientes():
@@ -95,38 +97,53 @@ def admin_suscripciones():
 @app.post("/admin/validar-suscripcion")
 def validar_suscripcion():
     id_registro = request.form.get("id_registro")
-
     if not id_registro:
         return redirect(url_for("admin_suscripciones"))
 
-    # 1. Leer todas las ventas y encontrar la fila correspondiente
-    rows = obtener_registros_ventas()
-    row = next((r for r in rows if str(r.get("id_registro")) == id_registro), None)
+    client = get_sheet_client()
+    sheet = client.open_by_key(SPREADSHEET_ID).worksheet("REGISTROS_SUSCRIPCION")
 
-    if not row:
+    # 1. Buscar la fila por id_registro
+    celdas_id = sheet.findall(id_registro)
+    if not celdas_id:
         return redirect(url_for("admin_suscripciones"))
 
-    # 2. Crear usuario en Neon con tus reglas
-    resultado = crear_usuario_quizora(row)
+    fila_idx = celdas_id[0].row
+    valores = sheet.row_values(fila_idx)
+    encabezados = sheet.row_values(1)
+    row = {encabezados[i]: valores[i] if i < len(valores) else "" for i in range(len(encabezados))}
 
-    # 3. Asignar cuestionarios iniciales según especialidad
+    # 2. Marcar estado Verificado en el Sheet
+    sheet.update_cell(fila_idx, 8, "Verificado")  # H: estado_verificac
+
+    # 3. Tomar usuario, contraseña y especialidad desde el Sheet
+    username = row.get("usuario_generado")
+    raw_password = row.get("password_generado")
     specialty_code = row.get("especialidad")
-    asignar_quices_iniciales(resultado["user_id"], specialty_code)
+    plan = "premium"
 
-    # 4. Actualizar registro de ventas (usuario, hash, fecha activación)
-    # aquí usas tu helper actualizar_registro_ventas según su firma
-    actualizar_registro_ventas(
-        row_index=row.get("row_index"),           # ajusta según cómo lo implementaste
-        usuario_generado=resultado["username"],
-        password_generado_hash=resultado["password_hash"],
-        fecha_activacion_iso=datetime.utcnow().isoformat(),
+    # 4. Llamar al endpoint interno de QUIZORA
+    resp = requests.post(
+        f"{QUIZORA_API_URL}/superadmin/api/register",
+        json={
+            "username": username,
+            "password": raw_password,
+            "specialty_code": specialty_code,
+            "plan": plan,
+        },
+        headers={"X-QUIZORA-ADMIN-TOKEN": ADMIN_API_TOKEN},
+        timeout=10,
     )
 
-    # 5. Notas admin
-    nota = "Validado desde dashboard admin QUIZORA."
-    if resultado["num_iniciales_usadas"] == 3:
-        nota += " Username creado con 3 iniciales por colisión."
-    actualizar_notas_admin(row.get("row_index"), nota)
+    if resp.status_code == 200:
+        data = resp.json()
+        # 5. Actualizar fecha_activacion y notas_admin en el Sheet
+        sheet.update_cell(fila_idx, 11, datetime.utcnow().isoformat())  # K: fecha_activacion
+        nota = f"Usuario creado en QUIZORA (id={data.get('user_id')})"
+        sheet.update_cell(fila_idx, 12, nota)                            # L: notas_admin
+    else:
+        # Dejar constancia del error
+        sheet.update_cell(fila_idx, 12, f"Error al crear usuario: {resp.text}")
 
     return redirect(url_for("admin_suscripciones"))
 
