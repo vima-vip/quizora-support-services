@@ -1,119 +1,64 @@
-body {
-  margin: 0;
-  padding: 24px 16px;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background: #f5f7fb;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-}
+{% extends "base.html" %}
 
-/* CONTENEDOR PRINCIPAL DEL WIDGET (estructura original) */
-.quizora-chat-widget {
-  width: 100%;
-  max-width: 420px;
-  margin: 0 auto;
-  background: #ffffff;
-  border-radius: 16px;
-  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18);
-  border: 1px solid rgba(148, 163, 184, 0.5);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
+{% block title %}Widget de soporte QUIZORA{% endblock %}
 
-/* ÁREA DE MENSAJES */
-.chat-messages {
-  min-height: 220px;
-  max-height: 320px;
-  padding: 10px 12px;
-  background: #f9fafb;
-  overflow-y: auto;
-  box-sizing: border-box;
-  font-size: 13px;
-  color: #111827;
-}
+{% block content %}
+<div id="quizora-chat-widget" class="quizora-chat-widget">
+  <div id="chat-messages" class="chat-messages"></div>
+  <div class="chat-input-row">
+    <input id="chat-input" type="text" placeholder="Escribe tu consulta..." />
+    <button id="chat-send">Enviar</button>
+  </div>
+</div>
 
-/* Mensajes usuario/bot (clases usadas en addMessage) */
-.msg-user {
-  margin: 4px 0;
-  text-align: right;
-  color: #111827;
-}
+<script>
+  const apiUrl = "/webhook";  // el widget se sirve desde el mismo dominio del microservicio
 
-.msg-bot {
-  margin: 4px 0;
-  text-align: left;
-  color: #374151;
-}
+  const messagesDiv = document.getElementById("chat-messages");
+  const input = document.getElementById("chat-input");
+  const sendBtn = document.getElementById("chat-send");
 
-/* Link al formulario de suscripción (className: chat-link) */
-.chat-link {
-  display: inline-block;
-  margin-top: 8px;
-  padding: 6px 12px;
-  border-radius: 999px;
-  background: #7CFC77;       /* verde suave */
-  color: #111827;
-  text-decoration: none;
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.chat-link:hover {
-  background: #A0FF9A;
-}
-
-/* FILA DE INPUT + BOTÓN (estructura original) */
-.chat-input-row {
-  display: flex;
-  gap: 8px;
-  padding: 10px 12px;
-  border-top: 1px solid rgba(148, 163, 184, 0.5);
-  background: #ffffff;
-}
-
-.chat-input-row input[type="text"] {
-  flex: 1;
-  padding: 8px 10px;
-  border-radius: 8px;
-  border: 1px solid #d1d5db;
-  font-size: 13px;
-  box-sizing: border-box;
-}
-
-.chat-input-row input[type="text"]:focus {
-  outline: none;
-  border-color: #7CFC77;
-  box-shadow: 0 0 0 1px #7CFC77;
-}
-
-.chat-input-row button {
-  padding: 8px 14px;
-  border-radius: 8px;
-  border: none;
-  background: #111827;
-  color: #f9fafb;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.chat-input-row button:hover {
-  background: #020617;
-}
-
-/* Responsivo */
-@media (max-width: 480px) {
-  body {
-    padding: 16px 8px;
+  function addMessage(text, from) {
+    const p = document.createElement("p");
+    p.className = from === "user" ? "msg-user" : "msg-bot";
+    p.textContent = text;
+    messagesDiv.appendChild(p);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
   }
 
-  .quizora-chat-widget {
-    max-width: 100%;
+  async function sendMessage() {
+    const texto = input.value.trim();
+    if (!texto) return;
+    addMessage("Tú: " + texto, "user");
+    input.value = "";
+
+    try {
+      const resp = await fetch(apiUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mensaje: texto, origen: "widget_web" })
+      });
+
+      const data = await resp.json();
+      addMessage("Quizora: " + data.mensaje, "bot");
+
+      if (data.tipo === "venta" && data.form_url) {
+        const link = document.createElement("a");
+        link.href = data.form_url;
+        link.target = "_blank";
+        link.textContent = "Ir al formulario de suscripción";
+        link.className = "chat-link";
+        messagesDiv.appendChild(link);
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      }
+    } catch (err) {
+      addMessage("Hubo un error al procesar tu mensaje. Intenta nuevamente.", "bot");
+    }
   }
 
-  .chat-messages {
-    max-height: 260px;
-  }
-}
+  sendBtn.addEventListener("click", sendMessage);
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") sendMessage();
+  });
+</script>
+{% endblock %}
