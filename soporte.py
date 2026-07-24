@@ -17,17 +17,14 @@ def detectar_intencion_compra(mensaje: str) -> bool:
 
 
 def procesar_mensaje(mensaje: str):
-    # 1. Intentar FAQ desde AUTO_QUIZORA / BD
     match = buscar_faq(mensaje)
     if match:
-        # match tiene: "respuesta" y "keyword"
         return {
             "mensaje": match["respuesta"],
             "tipo": "faq",
             "keyword": match["keyword"]
         }
 
-    # 2. Detectar intención de compra
     if detectar_intencion_compra(mensaje):
         return {
             "mensaje": (
@@ -38,11 +35,11 @@ def procesar_mensaje(mensaje: str):
             "form_url": FORM_URL
         }
 
-    # 3. Fallback a asesor
+    # Fallback a asesor con WhatsApp
     return {
         "mensaje": (
             "No encontré una respuesta automática para tu consulta. "
-            "Te derivaré con un asesor del equipo de QUIZORA."
+            "Te derivaré con un asesor del equipo de QUIZORA al WhatsApp 924582362."
         ),
         "tipo": "escalar"
     }
