@@ -62,9 +62,9 @@ def hashear_password(raw_password: str) -> str:
     return f"scrypt:{SCRYPT_N}:{SCRYPT_R}:{SCRYPT_P}${salt_b64}${key_b64}"
 
 def crear_usuario_quizora(row: Dict) -> Dict:
-    primer_nombre_completo = row["nombres"].split()[0].strip()
-    primer_apellido = row["primer_apellido"].strip()
-    dni = row["dni"].strip()
+    primer_nombre_completo = str(row["nombres"]).split()[0].strip()
+    primer_apellido = str(row["primer_apellido"]).strip()
+    dni = str(row["dni"]).strip()
     specialty_code = row.get("especialidad")  # mapea a specialty_code de user [file:1]
     plan = "premium"  # o "basico", según lo que vendas en este flujo
 
