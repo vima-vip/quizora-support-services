@@ -6,6 +6,19 @@
 <div class="subscription-simple">
   <h1 class="subscription-title">Suscripción a QUIZORA</h1>
 
+  {% if enviado_ok is defined %}
+    {% if enviado_ok %}
+      <p class="subscription-text" style="color:#16a34a; font-weight:600;">
+        Tus datos se enviaron correctamente. En breve un asesor validará tu suscripción.
+      </p>
+    {% else %}
+      <p class="subscription-text" style="color:#dc2626; font-weight:600;">
+        Ocurrió un error al registrar tu suscripción: {{ error }}.
+        Intenta nuevamente o contacta al soporte.
+      </p>
+    {% endif %}
+  {% endif %}
+
   <p class="subscription-text">
     Escanee el siguiente código QR de Yape para realizar el pago de su suscripción.
     Luego complete sus datos y el código de operación de Yape.
