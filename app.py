@@ -73,17 +73,21 @@ def form_suscripcion():
     return render_template("modal_pago.html")
 
 
+
 # Registro de suscripción
 @app.post("/registro-suscripcion")
 def registro_suscripcion():
     datos = request.form.to_dict() or {}
+
     try:
         registrar_venta(datos)
         return render_template("modal_pago.html", enviado_ok=True)
     except Exception as e:
-        return render_template("modal_pago.html", enviado_ok=False, error=str(e)), 500
-}
-
+        return render_template(
+            "modal_pago.html",
+            enviado_ok=False,
+            error=str(e)
+        ), 500
 
 # Dashboard admin
 @app.get("/admin/suscripciones")
