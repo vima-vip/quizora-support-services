@@ -1,4 +1,4 @@
-/* CONTENEDOR PRINCIPAL (ya lo tienes parecido) */
+/* CONTENEDOR PRINCIPAL */
 .quizora-chat-widget {
   width: 100%;
   max-width: 420px;
@@ -43,7 +43,7 @@
   color: #111827;
 }
 
-/* Área de mensajes (como ya la tienes, pero dentro) */
+/* Área de mensajes */
 .chat-messages {
   min-height: 180px;
   max-height: 260px;
@@ -83,7 +83,7 @@
   background: #A0FF9A;
 }
 
-/* Input + botón (ya lo tienes, refuerza) */
+/* Input + botón */
 .chat-input-row {
   display: flex;
   gap: 8px;
@@ -122,15 +122,36 @@
   background: #020617;
 }
 
-/* Mensajes */
+/* Mensajes: usuario vs QUIZORA */
+
+/* Usuario: alegre, resaltado a la derecha */
 .msg-user {
-  margin: 4px 0;
+  margin: 6px 0;
   text-align: right;
-  color: #111827;
+  color: #2563eb;                         /* azul vivo */
+  font-weight: 600;
+  background: rgba(219, 234, 254, 0.9);   /* azul muy claro de fondo */
+  padding: 4px 8px;
+  border-radius: 12px;
+  display: inline-block;
 }
 
+/* QUIZORA: más neutro, lectura cómoda */
 .msg-bot {
-  margin: 4px 0;
+  margin: 6px 0;
   text-align: left;
   color: #374151;
+  font-weight: 500;
+}
+
+/* Responsivo */
+@media (max-width: 480px) {
+  .quizora-chat-widget {
+    max-width: 100%;
+    margin: 16px auto;
+  }
+
+  .chat-messages {
+    max-height: 260px;
+  }
 }
