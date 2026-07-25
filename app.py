@@ -79,15 +79,65 @@ def form_suscripcion():
 def registro_suscripcion():
     datos = request.form.to_dict() or {}
 
+    dni = datos.get("dni", "").strip()
+    especialidad = datos.get("especialidad", "").strip()
+
+    # Si faltan datos clave, simplemente mostramos error
+    if not dni or not especialidad:
+        return render_template(
+            "modal_pago.html",
+            enviado_ok=False,
+            error="Faltan datos de DNI o especialidad para registrar la suscripción."
+        ), 400
+
     try:
+        # 1. Revisar si ya existe una fila con mismo DNI y especialidad
+        gc = get_client()
+        sh = gc.open("QUIZORA_Ventas")              # mismo doc que usas en validar_suscripcion
+        sheet = sh.worksheet("REGISTROS_SUSCRIPCION")
+
+        # Leer todas las filas con datos (saltando encabezados)
+        all_values = sheet.get_all_values()
+        encabezados = all_values[0] if all_values else []
+
+        # Índices de columnas según encabezado
+        idx_dni = encabezados.index("dni") if "dni" in encabezados else 5   # F por defecto
+        idx_esp = encabezados.index("especialidad") if "especialidad" in encabezados else 4  # E por defecto
+        idx_estado = encabezados.index("estado_verificacion") if "estado_verificacion" in encabezados else 7
+
+        existe_duplicado = False
+        for row in all_values[1:]:  # desde la fila 2
+            if len(row) <= max(idx_dni, idx_esp):
+                continue
+            dni_existente = row[idx_dni].strip()
+            esp_existente = row[idx_esp].strip()
+            estado_existente = row[idx_estado].strip() if len(row) > idx_estado else ""
+
+            # Consideramos duplicado si ya hay una suscripción (Pendiente o Verificado) con mismo DNI+especialidad
+            if dni_existente == dni and esp_existente == especialidad and estado_existente in ("Pendiente", "Verificado"):
+                existe_duplicado = True
+                break
+
+        if existe_duplicado:
+            # No registramos otra venta, solo avisamos en el mismo modal
+            return render_template(
+                "modal_pago.html",
+                enviado_ok=False,
+                error="Ya existe una suscripción pendiente o verificada con este DNI y especialidad. "
+                      "Espera la validación o contacta al soporte."
+            ), 200
+
+        # 2. Si no hay duplicado, registramos normalmente
         registrar_venta(datos)
         return render_template("modal_pago.html", enviado_ok=True)
+
     except Exception as e:
         return render_template(
             "modal_pago.html",
             enviado_ok=False,
             error=str(e)
         ), 500
+
 
 # Dashboard admin
 @app.get("/admin/suscripciones")
