@@ -4,3 +4,5 @@ oauth2client
 psycopg2-binary
 flask-cors
 gunicorn
+unidecode
+rapidfuzz
