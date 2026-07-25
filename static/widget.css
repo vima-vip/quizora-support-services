@@ -1,4 +1,4 @@
-/* CONTENEDOR PRINCIPAL */
+/* CONTENEDOR PRINCIPAL DEL WIDGET DE CHAT */
 .quizora-chat-widget {
   width: 100%;
   max-width: 420px;
@@ -14,7 +14,7 @@
   font-size: 13px;
 }
 
-/* Encabezado */
+/* Encabezado del widget */
 .widget-header {
   display: flex;
   align-items: center;
@@ -43,7 +43,7 @@
   color: #111827;
 }
 
-/* Área de mensajes */
+/* Área de mensajes del chat */
 .chat-messages {
   min-height: 180px;
   max-height: 260px;
@@ -53,7 +53,28 @@
   box-sizing: border-box;
 }
 
-/* Bloque del botón de pago */
+/* Mensajes: usuario vs QUIZORA */
+/* Usuario: alegre, resaltado a la derecha */
+.msg-user {
+  margin: 6px 0;
+  text-align: right;
+  color: #2563eb;                         /* azul vivo */
+  font-weight: 600;
+  background: rgba(219, 234, 254, 0.9);   /* azul muy claro de fondo */
+  padding: 4px 8px;
+  border-radius: 12px;
+  display: inline-block;
+}
+
+/* QUIZORA: más neutro, lectura cómoda */
+.msg-bot {
+  margin: 6px 0;
+  text-align: left;
+  color: #374151;
+  font-weight: 500;
+}
+
+/* Bloque del botón de pago dentro del widget */
 .payment-link-wrapper {
   padding: 10px 12px 14px;
   text-align: center;
@@ -83,7 +104,7 @@
   background: #A0FF9A;
 }
 
-/* Input + botón */
+/* Fila de input + botón de Enviar */
 .chat-input-row {
   display: flex;
   gap: 8px;
@@ -122,31 +143,98 @@
   background: #020617;
 }
 
-/* Mensajes: usuario vs QUIZORA */
+/* Tarjeta del formulario de pago (modal de suscripción simple) */
+.subscription-simple {
+  max-width: 420px;
+  margin: 24px auto;
+  padding: 16px 18px 20px;
+  background: #ffffff;
+  border-radius: 18px;
+  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.18);
+  border: 1px solid rgba(148, 163, 184, 0.45);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
 
-/* Usuario: alegre, resaltado a la derecha */
-.msg-user {
+.subscription-title {
+  margin: 0 0 8px;
+  font-size: 22px;
+  font-weight: 700;
+  color: #111827;
+  text-align: center;
+}
+
+.subscription-text {
   margin: 6px 0;
-  text-align: right;
-  color: #2563eb;                         /* azul vivo */
+  font-size: 13px;
+  color: #4b5563;
+  text-align: center;
+}
+
+/* Imagen del QR de Yape */
+.yape-qr-img {
+  display: block;
+  margin: 16px auto;
+  max-width: 260px;
+  border-radius: 16px;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.25);
+}
+
+/* Formulario dentro del modal */
+.subscription-form-simple {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.subscription-form-simple label {
+  font-size: 12px;
   font-weight: 600;
-  background: rgba(219, 234, 254, 0.9);   /* azul muy claro de fondo */
-  padding: 4px 8px;
-  border-radius: 12px;
-  display: inline-block;
-}
-
-/* QUIZORA: más neutro, lectura cómoda */
-.msg-bot {
-  margin: 6px 0;
-  text-align: left;
   color: #374151;
-  font-weight: 500;
 }
 
-/* Responsivo */
+.subscription-form-simple input {
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid #d1d5db;
+  font-size: 13px;
+  box-sizing: border-box;
+  background: #f9fafb;
+  color: #111827;
+}
+
+.subscription-form-simple input:focus {
+  outline: none;
+  border-color: #7CFC77;
+  box-shadow: 0 0 0 1px #7CFC77;
+  background: #ffffff;
+}
+
+.subscription-helper {
+  font-size: 11px;
+  color: #6b7280;
+}
+
+.subscription-btn {
+  margin-top: 12px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: none;
+  background: #111827;
+  color: #f9fafb;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.subscription-btn:hover {
+  background: #020617;
+}
+
+/* Responsivo general */
 @media (max-width: 480px) {
-  .quizora-chat-widget {
+  .quizora-chat-widget,
+  .subscription-simple {
     max-width: 100%;
     margin: 16px auto;
   }
