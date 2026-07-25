@@ -76,10 +76,13 @@ def form_suscripcion():
 # Registro de suscripción
 @app.post("/registro-suscripcion")
 def registro_suscripcion():
-    datos = request.json or {}
+    # Para formularios HTML, usamos request.form en lugar de request.json
+    datos = request.form.to_dict() or {}
 
     try:
         registrar_venta(datos)
+        # Puedes devolver una página de confirmación o un JSON.
+        # De momento, mantenemos el JSON simple:
         return jsonify({"status": "ok"})
     except Exception as e:
         return jsonify({"status": "error", "detail": str(e)}), 500
