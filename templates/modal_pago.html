@@ -75,7 +75,6 @@
       <option value="mus">MUS</option>
       <option value="oes">OES</option>
       <option value="pan">PAN</option>
-      <option value="pan">PAN</option>
       <option value="pda">PDA-SAR</option>
       <option value="pel">PEL</option>
       <option value="pon">PON</option>
@@ -103,4 +102,19 @@
     <button type="submit" class="subscription-btn">Enviar solicitud</button>
   </form>
 </div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const form = document.querySelector(".subscription-form-simple");
+    const submitBtn = document.querySelector(".subscription-btn");
+
+    if (!form || !submitBtn) return;
+
+    form.addEventListener("submit", function () {
+      // Desactivar el botón para impedir reenvío accidental
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Enviando...";
+    });
+  });
+</script>
 {% endblock %}
