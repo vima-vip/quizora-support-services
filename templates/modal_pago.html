@@ -3,76 +3,40 @@
 {% block title %}Suscripción y pago QUIZORA{% endblock %}
 
 {% block content %}
-<div class="modal-pago">
-  <h1>Suscripción a QUIZORA</h1>
-  <p>
+<div class="subscription-simple">
+  <h1 class="subscription-title">Suscripción a QUIZORA</h1>
+
+  <p class="subscription-text">
     Escanee el siguiente código QR de Yape para realizar el pago de su suscripción.
     Luego complete sus datos y el código de operación de Yape.
   </p>
 
-  <div class="qr-section">
-    <img src="{{ url_for('static', filename='images/qr_yape_quizora.png') }}" alt="QR Yape QUIZORA">
-  </div>
+  <img src="{{ url_for('static', filename='images/yape_qr.png') }}"
+       alt="QR de Yape para suscripción QUIZORA"
+       class="yape-qr-img">
 
-  <form id="suscripcion-form">
-    <label>
-      Nombres completos<br>
-      <input type="text" name="nombres" required>
-    </label><br><br>
+  <p class="subscription-text">
+    Escanee este código con la app de Yape para pagar su suscripción.
+  </p>
 
-    <label>
-      Primer apellido<br>
-      <input type="text" name="primer_apellido" required>
-    </label><br><br>
+  <form method="post" class="subscription-form-simple">
+    <label for="nombres">Nombres completos</label>
+    <input type="text" id="nombres" name="nombres" required>
 
-    <label>
-      Especialidad (código)<br>
-      <input type="text" name="especialidad" placeholder="adm, ele, eco, enf..." required>
-    </label><br><br>
+    <label for="primer_apellido">Primer apellido</label>
+    <input type="text" id="primer_apellido" name="primer_apellido" required>
 
-    <label>
-      Número de DNI<br>
-      <input type="text" name="dni" required>
-    </label><br><br>
+    <label for="especialidad">Especialidad (código)</label>
+    <input type="text" id="especialidad" name="especialidad" required>
+    <small class="subscription-helper">Ejemplos: adm, ele, eco, enf…</small>
 
-    <label>
-      Código de operación Yape<br>
-      <input type="text" name="codigo_transaccion_yape" required>
-    </label><br><br>
+    <label for="dni">Número de DNI</label>
+    <input type="text" id="dni" name="dni" required>
 
-    <button type="submit">Enviar solicitud</button>
+    <label for="codigo_transaccion_yape">Código de operación Yape</label>
+    <input type="text" id="codigo_transaccion_yape" name="codigo_transaccion_yape" required>
+
+    <button type="submit" class="subscription-btn">Enviar solicitud</button>
   </form>
-
-  <p id="resultado"></p>
 </div>
-
-<script>
-  const form = document.getElementById("suscripcion-form");
-  const resultado = document.getElementById("resultado");
-
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-
-    const formData = new FormData(form);
-    const payload = Object.fromEntries(formData.entries());
-
-    try {
-      const resp = await fetch("/registro-suscripcion", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-
-      const data = await resp.json();
-      if (data.status === "ok") {
-        resultado.textContent = "Gracias. Validaremos su pago y luego le enviaremos sus credenciales.";
-        form.reset();
-      } else {
-        resultado.textContent = "Hubo un error al registrar su solicitud. Intente nuevamente.";
-      }
-    } catch (err) {
-      resultado.textContent = "Error de conexión. Intente nuevamente en unos minutos.";
-    }
-  });
-</script>
 {% endblock %}
