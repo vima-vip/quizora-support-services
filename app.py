@@ -76,16 +76,22 @@ def form_suscripcion():
 # Registro de suscripción
 @app.post("/registro-suscripcion")
 def registro_suscripcion():
-    # Para formularios HTML, usamos request.form en lugar de request.json
     datos = request.form.to_dict() or {}
 
     try:
         registrar_venta(datos)
-        # Puedes devolver una página de confirmación o un JSON.
-        # De momento, mantenemos el JSON simple:
-        return jsonify({"status": "ok"})
+        # Mostrar mensaje de éxito en la misma pantalla
+        return render_template(
+            "modal_pago.html",
+            enviado_ok=True
+        )
     except Exception as e:
-        return jsonify({"status": "error", "detail": str(e)}), 500
+        # Mostrar mensaje de error en la misma pantalla
+        return render_template(
+            "modal_pago.html",
+            enviado_ok=False,
+            error=str(e)
+        ), 500
 
 
 # Dashboard admin
