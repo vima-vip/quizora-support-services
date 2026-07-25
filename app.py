@@ -77,21 +77,12 @@ def form_suscripcion():
 @app.post("/registro-suscripcion")
 def registro_suscripcion():
     datos = request.form.to_dict() or {}
-
     try:
         registrar_venta(datos)
-        # Mostrar mensaje de éxito en la misma pantalla
-        return render_template(
-            "modal_pago.html",
-            enviado_ok=True
-        )
+        return render_template("modal_pago.html", enviado_ok=True)
     except Exception as e:
-        # Mostrar mensaje de error en la misma pantalla
-        return render_template(
-            "modal_pago.html",
-            enviado_ok=False,
-            error=str(e)
-        ), 500
+        return render_template("modal_pago.html", enviado_ok=False, error=str(e)), 500
+}
 
 
 # Dashboard admin
