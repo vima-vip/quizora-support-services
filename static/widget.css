@@ -230,6 +230,25 @@
 .subscription-btn:hover {
   background: #020617;
 }
+
+
+.subscription-select {
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid #d1d5db;
+  font-size: 13px;
+  box-sizing: border-box;
+  background: #f9fafb;
+  color: #111827;
+}
+
+.subscription-select:focus {
+  outline: none;
+  border-color: #7CFC77;
+  box-shadow: 0 0 0 1px #7CFC77;
+  background: #ffffff;
+}
+
 /* Tarjeta del panel de administración de suscripciones */
 .admin-card {
   max-width: 900px;
