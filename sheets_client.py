@@ -55,6 +55,21 @@ def buscar_faq(mensaje: str) -> Optional[Dict]:
     return None
 
 
+def obtener_keywords_quizora() -> List[Dict]:
+    """
+    Devuelve todos los FAQs de AUTO_QUIZORA/BD como lista de dicts.
+    Cada dict incluye al menos: keyword, respuesta, activa.
+    Esto se usa para el match borroso (80 % de similitud).
+    """
+    gc = get_client()
+    sh = gc.open(FAQ_DOC_NAME)
+    sheet = sh.worksheet(FAQ_SHEET_NAME)
+
+    # get_all_records ya te devuelve una lista de dicts según los encabezados
+    rows = sheet.get_all_records()  # columnas: keyword, respuesta, activa, etc.
+    return rows
+
+
 # ===== Ventas (QUIZORA_Ventas / REGISTROS_SUSCRIPCION) =====
 
 def registrar_venta(datos: dict):
