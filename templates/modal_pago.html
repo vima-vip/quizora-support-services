@@ -19,7 +19,10 @@
     Escanee este código con la app de Yape para pagar su suscripción.
   </p>
 
-  <form method="post" class="subscription-form-simple">
+  <form method="post"
+        action="{{ url_for('registro_suscripcion') }}"
+        class="subscription-form-simple">
+
     <label for="nombres">Nombres completos</label>
     <input type="text" id="nombres" name="nombres" required>
 
