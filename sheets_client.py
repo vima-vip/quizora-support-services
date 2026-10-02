@@ -90,6 +90,7 @@ def registrar_venta(datos: dict):
         datos.get("primer_apellido", ""),    # primer_apellido
         datos.get("especialidad", ""),       # especialidad
         datos.get("dni", ""),                # dni
+        datos.get("telefono", "").strip(),        # G: telefono
         datos.get("codigo_transaccion_yape", ""),  # codigo_transaccion_yape
         "Pendiente",                         # estado_verificacion
         "",                                  # usuario_generado
@@ -117,13 +118,13 @@ def actualizar_registro_ventas(
     gc = get_client()
     sh = gc.open(VENTAS_DOC_NAME)
     sheet = sh.worksheet(VENTAS_SHEET_NAME)
-    sheet.update_cell(row_index, 9, usuario_generado)        # usuario_generado
-    sheet.update_cell(row_index, 10, password_generado_hash) # password_generado
-    sheet.update_cell(row_index, 11, fecha_activacion_iso)   # fecha_activacion
+    sheet.update_cell(row_index, 10, usuario_generado)        # usuario_generado
+    sheet.update_cell(row_index, 11, password_generado_hash) # password_generado
+    sheet.update_cell(row_index, 12, fecha_activacion_iso)   # fecha_activacion
 
 
 def actualizar_notas_admin(row_index: int, nota: str):
     gc = get_client()
     sh = gc.open(VENTAS_DOC_NAME)
     sheet = sh.worksheet(VENTAS_SHEET_NAME)
-    sheet.update_cell(row_index, 12, nota)  # notas_admin
+    sheet.update_cell(row_index, 13, nota)  # notas_admin
