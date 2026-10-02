@@ -92,12 +92,13 @@ def registro_suscripcion():
         ), 400
 
     if not telefono.isdigit() or len(telefono) != 9 or not telefono.startswith("9"):
-    return render_template(
-        "modal_pago.html",
-        enviado_ok=False,
-        error="Ingresa un número de teléfono válido de 9 dígitos."
-       ), 400
+        return render_template(
+            "modal_pago.html",
+            enviado_ok=False,
+            error="Ingresa un número de teléfono válido de 9 dígitos."
+        ), 400
 
+    
     try:
         # 1. Revisar si ya existe una fila con mismo DNI y especialidad
         gc = get_client()
