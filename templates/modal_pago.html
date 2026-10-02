@@ -6,61 +6,59 @@
 <div class="subscription-simple">
   <h1 class="subscription-title">Suscripción a QUIZORA</h1>
 
-{% if enviado_ok is defined %}
-  {% if enviado_ok %}
-    <div class="success-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="success-modal-title">
-      <section class="success-modal">
-        <div class="success-modal-icon" aria-hidden="true">✓</div>
+  {% if enviado_ok is defined %}
+    {% if enviado_ok %}
+      <div class="success-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="success-modal-title">
+        <section class="success-modal">
+          <div class="success-modal-icon" aria-hidden="true">✓</div>
 
-        <h2 id="success-modal-title">Solicitud enviada correctamente</h2>
+          <h2 id="success-modal-title">Solicitud enviada correctamente</h2>
 
-        <p class="success-modal-highlight">
-          Tu pago será validado por un asesor.
-        </p>
+          <p class="success-modal-highlight">
+            Tu pago será validado por un asesor.
+          </p>
 
-        <p class="success-modal-text">
-          Cuando el pago sea confirmado, enviaremos tus credenciales de acceso
-          al número de teléfono registrado en el formulario.
-        </p>
+          <p class="success-modal-text">
+            Cuando el pago sea confirmado, enviaremos tus credenciales de acceso
+            al número de teléfono registrado en el formulario.
+          </p>
 
-        <p class="success-modal-note">
-          Conserva tu código de operación Yape mientras esperas la validación.
-        </p>
+          <p class="success-modal-note">
+            Conserva tu código de operación Yape mientras esperas la validación.
+          </p>
 
-        <a href="https://quizora-jamu.onrender.com/login" class="success-modal-button">
-          Entendido
-        </a>
-      </section>
-    </div>
+          <a href="https://quizora-jamu.onrender.com/login" class="success-modal-button">
+            Entendido
+          </a>
+        </section>
+      </div>
+    {% else %}
+      <div class="error-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="error-modal-title">
+        <section class="error-modal">
+          <div class="error-modal-icon" aria-hidden="true">!</div>
 
-  {% else %}
-    <div class="error-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="error-modal-title">
-      <section class="error-modal">
-        <div class="error-modal-icon" aria-hidden="true">!</div>
+          <h2 id="error-modal-title">Solicitud no registrada</h2>
 
-        <h2 id="error-modal-title">Solicitud no registrada</h2>
+          <p class="error-modal-highlight">
+            Ya existe una solicitud con este DNI y especialidad.
+          </p>
 
-        <p class="error-modal-highlight">
-          Ya existe una solicitud con este DNI y especialidad.
-        </p>
+          <p class="error-modal-text">
+            Tu suscripción ya está pendiente de validación o ya fue verificada.
+            No es necesario enviar otra solicitud.
+          </p>
 
-        <p class="error-modal-text">
-          Tu suscripción ya está pendiente de validación o ya fue verificada.
-          No es necesario enviar otra solicitud.
-        </p>
+          <p class="error-modal-note">
+            Espera la validación de tu pago. Si necesitas ayuda, contacta al soporte.
+          </p>
 
-        <p class="error-modal-note">
-          Espera la validación de tu pago. Si necesitas ayuda, contacta al soporte.
-        </p>
-
-        <a href="https://quizora-jamu.onrender.com/login" class="error-modal-button">
-          Entendido
-        </a>
-      </section>
-    </div>
+          <a href="https://quizora-jamu.onrender.com/login" class="error-modal-button">
+            Entendido
+          </a>
+        </section>
+      </div>
+    {% endif %}
   {% endif %}
-{% endif %}
-  
 
   <p class="subscription-text">
     Escanee el siguiente código QR de Yape para realizar el pago de su suscripción.
