@@ -4,35 +4,40 @@
 
 {% block content %}
 <div class="quizora-chat-widget">
-  <!-- Encabezado del widget -->
   <div class="widget-header">
     <div class="widget-header-logo">Q</div>
     <div class="widget-header-text">Asistente de soporte QUIZORA</div>
   </div>
 
-  <!-- Área de mensajes (la usa tu JS) -->
   <div id="chat-messages" class="chat-messages">
-    <!-- Opcional: mensaje inicial fijo -->
     <p class="msg-bot">
       Bienvenido, escribe tu consulta sobre QUIZORA y te ayudaremos a continuar.
     </p>
   </div>
 
-  <!-- Bloque del botón al formulario, siempre visible -->
   <div class="payment-link-wrapper">
     <p class="payment-link-text">
       ¿Listo para adquirir tu suscripción? Completa el formulario de pago aquí:
     </p>
-    <a href="{{ url_for('form_suscripcion') }}" class="payment-link-btn" target="_blank">
+
+    <a href="{{ url_for('form_suscripcion') }}" class="payment-link-btn">
       Ir al formulario de suscripción
     </a>
   </div>
 
-  <!-- Fila de input + botón (la usa tu JS) -->
-  <div class="chat-input-row">
-    <input id="chat-input" type="text" placeholder="Escribe tu consulta..." />
-    <button id="chat-send">Enviar</button>
-  </div>
+  <form id="chat-form" class="chat-input-row">
+    <input
+      id="chat-input"
+      type="text"
+      placeholder="Escribe tu consulta..."
+      autocomplete="off"
+      aria-label="Escribe tu consulta"
+    >
+
+    <button id="chat-send" type="submit">
+      Enviar
+    </button>
+  </form>
 </div>
 
 <script>
@@ -41,49 +46,76 @@
   const messagesDiv = document.getElementById("chat-messages");
   const input = document.getElementById("chat-input");
   const sendBtn = document.getElementById("chat-send");
+  const chatForm = document.getElementById("chat-form");
+
+  function scrollToLastMessage() {
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  }
 
   function addMessage(text, from) {
     const p = document.createElement("p");
     p.className = from === "user" ? "msg-user" : "msg-bot";
     p.textContent = text;
     messagesDiv.appendChild(p);
-    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    scrollToLastMessage();
   }
 
   async function sendMessage() {
     const texto = input.value.trim();
-    if (!texto) return;
+
+    if (!texto || sendBtn.disabled) {
+      return;
+    }
+
     addMessage("Tú: " + texto, "user");
     input.value = "";
+    input.focus();
+
+    sendBtn.disabled = true;
+    sendBtn.textContent = "...";
 
     try {
       const resp = await fetch(apiUrl, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mensaje: texto, origen: "widget_web" })
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          mensaje: texto,
+          origen: "widget_web"
+        })
       });
 
-      const data = await resp.json();
-      addMessage("Quizora: " + data.mensaje, "bot");
+      if (!resp.ok) {
+        throw new Error("No se pudo procesar el mensaje.");
+      }
 
-      // Si aún quieres insertar el link cuando el bot detecta venta:
+      const data = await resp.json();
+      addMessage("Quizora: " + (data.mensaje || "No se recibió una respuesta."), "bot");
+
       if (data.tipo === "venta" && data.form_url) {
         const link = document.createElement("a");
         link.href = data.form_url;
-        link.target = "_blank";
         link.textContent = "Ir al formulario de suscripción";
         link.className = "chat-link";
         messagesDiv.appendChild(link);
-        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        scrollToLastMessage();
       }
     } catch (err) {
-      addMessage("Hubo un error al procesar tu mensaje. Intenta nuevamente.", "bot");
+      addMessage(
+        "Hubo un error al procesar tu mensaje. Intenta nuevamente.",
+        "bot"
+      );
+    } finally {
+      sendBtn.disabled = false;
+      sendBtn.textContent = "Enviar";
+      input.focus();
     }
   }
 
-  sendBtn.addEventListener("click", sendMessage);
-  input.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") sendMessage();
+  chatForm.addEventListener("submit", function (event) {
+    event.preventDefault();
+    sendMessage();
   });
 </script>
 {% endblock %}
