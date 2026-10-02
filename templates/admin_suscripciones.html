@@ -3,61 +3,180 @@
 {% block title %}Suscripciones pendientes de validación{% endblock %}
 
 {% block content %}
-<div class="admin-card">
+<div class="admin-subscriptions">
   <div class="admin-header">
     <div>
-      <h1 class="admin-title">Suscripciones pendientes de validación</h1>
-      <p class="admin-subtitle">
-        Revisa los pagos registrados y valida la creación de usuarios en QUIZORA.
-      </p>
+      <h1>Suscripciones pendientes de validación</h1>
+      <p>Revisa el pago y valida la creación de usuarios en QUIZORA.</p>
     </div>
-    <div class="admin-header-right">
-      Panel de administración QUIZORA Support
-    </div>
+    <span>Panel de administración QUIZORA Support</span>
   </div>
 
-  {% if suscripciones and suscripciones|length > 0 %}
-    <table class="admin-table">
-      <thead>
-        <tr>
-          <th>ID registro</th>
-          <th>Fecha</th>
-          <th>Nombre</th>
-          <th>Apellido</th>
-          <th>Especialidad</th>
-          <th>DNI</th>
-          <th>Código Yape</th>
-          <th>Usuario generado</th>
-          <th>Clave generada</th>
-          <th>Acción</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for s in suscripciones %}
+  {% if suscripciones %}
+    <div class="admin-table-wrapper">
+      <table class="admin-table">
+        <thead>
           <tr>
-            <td>{{ s.id_registro }}</td>
-            <td>{{ s.fecha_hora }}</td>
-            <td>{{ s.nombres }}</td>
-            <td>{{ s.primer_apellido }}</td>
-            <td>{{ s.especialidad }}</td>
-            <td>{{ s.dni }}</td>
-            <td>{{ s.codigo_transaccion_yape }}</td>
-            <td>{{ s.usuario_generado or '-' }}</td>
-            <td>{{ s.password_generado or '-' }}</td>
-            <td>
-              <form method="post" action="{{ url_for('validar_suscripcion') }}">
-                <input type="hidden" name="id_registro" value="{{ s.id_registro }}">
-                <button type="submit" class="admin-action-btn">Validar</button>
-              </form>
-            </td>
+            <th>Nombre</th>
+            <th>Apellido</th>
+            <th>Especialidad</th>
+            <th>Código Yape</th>
+            <th>Datos</th>
+            <th>Acción</th>
           </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+        </thead>
+
+        <tbody>
+          {% for s in suscripciones %}
+            <tr>
+              <td>{{ s.nombres }}</td>
+              <td>{{ s.primer_apellido }}</td>
+              <td>{{ s.especialidad | upper }}</td>
+              <td>{{ s.codigo_transaccion_yape }}</td>
+
+              <td>
+                <button
+                  type="button"
+                  class="admin-details-btn"
+                  data-nombres="{{ s.nombres }}"
+                  data-apellido="{{ s.primer_apellido }}"
+                  data-especialidad="{{ s.especialidad }}"
+                  data-dni="{{ s.dni }}"
+                  data-telefono="{{ s.telefono }}"
+                  data-yape="{{ s.codigo_transaccion_yape }}"
+                  data-usuario="{{ s.usuario_generado or '-' }}"
+                  data-password="{{ s.password_generado or '-' }}"
+                  data-fecha="{{ s.fecha_hora }}"
+                  data-id="{{ s.id_registro }}">
+                  Ver datos
+                </button>
+              </td>
+
+              <td>
+                <form method="post" action="{{ url_for('validar_suscripcion') }}">
+                  <input type="hidden" name="id_registro" value="{{ s.id_registro }}">
+                  <button type="submit" class="admin-validate-btn">
+                    Validar
+                  </button>
+                </form>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   {% else %}
-    <p class="admin-empty">
+    <p class="admin-empty-message">
       No hay suscripciones pendientes de validación en este momento.
     </p>
   {% endif %}
 </div>
+
+<div id="details-modal" class="details-modal" hidden>
+  <div class="details-modal-backdrop" data-close-modal></div>
+
+  <section class="details-modal-content" role="dialog" aria-modal="true" aria-labelledby="details-modal-title">
+    <div class="details-modal-header">
+      <h2 id="details-modal-title">Datos de la suscripción</h2>
+      <button type="button" class="details-modal-close" data-close-modal aria-label="Cerrar">
+        ×
+      </button>
+    </div>
+
+    <dl class="details-list">
+      <div>
+        <dt>ID de registro</dt>
+        <dd id="detail-id"></dd>
+      </div>
+      <div>
+        <dt>Nombres</dt>
+        <dd id="detail-nombres"></dd>
+      </div>
+      <div>
+        <dt>Primer apellido</dt>
+        <dd id="detail-apellido"></dd>
+      </div>
+      <div>
+        <dt>Especialidad</dt>
+        <dd id="detail-especialidad"></dd>
+      </div>
+      <div>
+        <dt>DNI</dt>
+        <dd id="detail-dni"></dd>
+      </div>
+      <div>
+        <dt>Teléfono</dt>
+        <dd id="detail-telefono"></dd>
+      </div>
+      <div>
+        <dt>Código Yape</dt>
+        <dd id="detail-yape"></dd>
+      </div>
+      <div>
+        <dt>Usuario generado</dt>
+        <dd id="detail-usuario"></dd>
+      </div>
+      <div>
+        <dt>Contraseña generada</dt>
+        <dd id="detail-password"></dd>
+      </div>
+      <div>
+        <dt>Fecha de solicitud</dt>
+        <dd id="detail-fecha"></dd>
+      </div>
+    </dl>
+  </section>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const modal = document.getElementById("details-modal");
+    const closeButtons = document.querySelectorAll("[data-close-modal]");
+    const detailButtons = document.querySelectorAll(".admin-details-btn");
+
+    const fields = {
+      id: document.getElementById("detail-id"),
+      nombres: document.getElementById("detail-nombres"),
+      apellido: document.getElementById("detail-apellido"),
+      especialidad: document.getElementById("detail-especialidad"),
+      dni: document.getElementById("detail-dni"),
+      telefono: document.getElementById("detail-telefono"),
+      yape: document.getElementById("detail-yape"),
+      usuario: document.getElementById("detail-usuario"),
+      password: document.getElementById("detail-password"),
+      fecha: document.getElementById("detail-fecha")
+    };
+
+    function cerrarModal() {
+      modal.hidden = true;
+    }
+
+    detailButtons.forEach(function (button) {
+      button.addEventListener("click", function () {
+        fields.id.textContent = button.dataset.id || "-";
+        fields.nombres.textContent = button.dataset.nombres || "-";
+        fields.apellido.textContent = button.dataset.apellido || "-";
+        fields.especialidad.textContent = (button.dataset.especialidad || "-").toUpperCase();
+        fields.dni.textContent = button.dataset.dni || "-";
+        fields.telefono.textContent = button.dataset.telefono || "-";
+        fields.yape.textContent = button.dataset.yape || "-";
+        fields.usuario.textContent = button.dataset.usuario || "-";
+        fields.password.textContent = button.dataset.password || "-";
+        fields.fecha.textContent = button.dataset.fecha || "-";
+
+        modal.hidden = false;
+      });
+    });
+
+    closeButtons.forEach(function (button) {
+      button.addEventListener("click", cerrarModal);
+    });
+
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "Escape" && !modal.hidden) {
+        cerrarModal();
+      }
+    });
+  });
+</script>
 {% endblock %}
