@@ -81,14 +81,22 @@ def registro_suscripcion():
 
     dni = datos.get("dni", "").strip()
     especialidad = datos.get("especialidad", "").strip()
+    telefono = datos.get("telefono", "").strip()
 
     # Si faltan datos clave, simplemente mostramos error
-    if not dni or not especialidad:
+    if not dni or not especialidad or not telefono:
         return render_template(
             "modal_pago.html",
             enviado_ok=False,
-            error="Faltan datos de DNI o especialidad para registrar la suscripción."
+            error="Faltan datos de DNI, especialidad o teléfono para registrar la suscripción."
         ), 400
+
+    if not telefono.isdigit() or len(telefono) != 9 or not telefono.startswith("9"):
+    return render_template(
+        "modal_pago.html",
+        enviado_ok=False,
+        error="Ingresa un número de teléfono válido de 9 dígitos."
+       ), 400
 
     try:
         # 1. Revisar si ya existe una fila con mismo DNI y especialidad
@@ -149,53 +157,139 @@ def admin_suscripciones():
 # Acción de VALIDAR
 @app.post("/admin/validar-suscripcion")
 def validar_suscripcion():
-    id_registro = request.form.get("id_registro")
+    id_registro = request.form.get("id_registro", "").strip()
+
     if not id_registro:
         return redirect(url_for("admin_suscripciones"))
 
-    gc = get_client()
-    sh = gc.open("QUIZORA_Ventas")  # usamos VENTAS_DOC_NAME de sheets_client
-    sheet = sh.worksheet("REGISTROS_SUSCRIPCION")  # VENTAS_SHEET_NAME
+    try:
+        gc = get_client()
+        sh = gc.open("QUIZORA_Ventas")
+        sheet = sh.worksheet("REGISTROS_SUSCRIPCION")
 
-    # 1. Buscar la fila por id_registro
-    celdas_id = sheet.findall(id_registro)
-    if not celdas_id:
-        return redirect(url_for("admin_suscripciones"))
+        # 1. Buscar exactamente la fila por id_registro.
+        celdas_id = sheet.findall(id_registro)
 
-    fila_idx = celdas_id[0].row
-    valores = sheet.row_values(fila_idx)
-    encabezados = sheet.row_values(1)
-    row = {encabezados[i]: valores[i] if i < len(valores) else "" for i in range(len(encabezados))}
+        if not celdas_id:
+            return redirect(url_for("admin_suscripciones"))
 
-    # 2. Marcar estado Verificado
-    sheet.update_cell(fila_idx, 8, "Verificado")  # H: estado_verificac
+        fila_idx = celdas_id[0].row
+        encabezados = sheet.row_values(1)
+        valores = sheet.row_values(fila_idx)
 
-    # 3. Tomar usuario, contraseña y especialidad
-    username = row.get("usuario_generado")
-    raw_password = row.get("password_generado")
-    specialty_code = row.get("especialidad")
-    plan = "premium"
+        row = {
+            encabezados[i]: valores[i] if i < len(valores) else ""
+            for i in range(len(encabezados))
+        }
 
-    # 4. Llamar a QUIZORA
-    resp = requests.post(
-        f"{QUIZORA_API_URL}/superadmin/api/register",
-        json={
-            "username": username,
-            "password": raw_password,
-            "specialty_code": specialty_code,
-            "plan": plan,
-        },
-        headers={"X-QUIZORA-ADMIN-TOKEN": ADMIN_API_TOKEN},
-        timeout=10,
-    )
+        # Estructura actual de columnas:
+        # A=1  id_registro
+        # B=2  fecha_hora
+        # C=3  nombres
+        # D=4  primer_apellido
+        # E=5  especialidad
+        # F=6  dni
+        # G=7  telefono
+        # H=8  codigo_transaccion_yape
+        # I=9  estado_verificacion
+        # J=10 usuario_generado
+        # K=11 password_generado
+        # L=12 fecha_activacion
+        # M=13 notas_admin
 
-    if resp.status_code == 200:
-        data = resp.json()
-        sheet.update_cell(fila_idx, 11, datetime.utcnow().isoformat())  # K: fecha_activacion
-        nota = f"Usuario creado en QUIZORA (id={data.get('user_id')})"
-        sheet.update_cell(fila_idx, 12, nota)
-    else:
-        sheet.update_cell(fila_idx, 12, f"Error al crear usuario: {resp.text}")
+        # 2. Obtener datos requeridos.
+        username = str(row.get("usuario_generado", "")).strip()
+        raw_password = str(row.get("password_generado", "")).strip()
+        specialty_code = str(row.get("especialidad", "")).strip()
+        telefono = str(row.get("telefono", "")).strip()
+        estado_actual = str(row.get("estado_verificacion", "")).strip().lower()
+        plan = "premium"
+
+        # Evita crear la misma cuenta otra vez con un doble clic o reintento.
+        if estado_actual == "verificado":
+            sheet.update_cell(
+                fila_idx,
+                13,
+                "La suscripción ya estaba verificada; no se creó otra cuenta."
+            )
+            return redirect(url_for("admin_suscripciones"))
+
+        # Apps Script debe haber generado antes el usuario y la contraseña.
+        if not username or not raw_password:
+            sheet.update_cell(
+                fila_idx,
+                13,
+                "No se pudo validar: faltan credenciales. "
+                "Espera a que Apps Script genere el usuario y la contraseña."
+            )
+            return redirect(url_for("admin_suscripciones"))
+
+        # El teléfono será necesario para el siguiente paso: enviar credenciales.
+        if not telefono:
+            sheet.update_cell(
+                fila_idx,
+                13,
+                "No se pudo validar: falta el número de teléfono del suscriptor."
+            )
+            return redirect(url_for("admin_suscripciones"))
+
+        # 3. Crear usuario en QUIZORA.
+        resp = requests.post(
+            f"{QUIZORA_API_URL}/superadmin/api/register",
+            json={
+                "username": username,
+                "password": raw_password,
+                "specialty_code": specialty_code,
+                "plan": plan,
+            },
+            headers={"X-QUIZORA-ADMIN-TOKEN": ADMIN_API_TOKEN},
+            timeout=10,
+        )
+
+        # Si QUIZORA responde con error HTTP, pasa al except.
+        resp.raise_for_status()
+
+        # 4. Solo después de crear correctamente la cuenta, actualizar la hoja.
+        try:
+            data = resp.json()
+        except ValueError:
+            data = {}
+
+        sheet.update_cell(fila_idx, 9, "Verificado")
+        sheet.update_cell(fila_idx, 12, datetime.utcnow().isoformat())
+
+        nota = (
+            f"Usuario creado en QUIZORA (id={data.get('user_id', 'sin id')}). "
+            f"Teléfono registrado: {telefono}."
+        )
+        sheet.update_cell(fila_idx, 13, nota)
+
+    except requests.exceptions.Timeout:
+        # Si tarda más de 10 segundos, la fila sigue pendiente.
+        sheet.update_cell(
+            fila_idx,
+            13,
+            "No se pudo validar: QUIZORA tardó demasiado en responder. Intenta nuevamente."
+        )
+
+    except requests.exceptions.RequestException as e:
+        # Errores HTTP, conexión, DNS, etc. La fila se mantiene Pendiente.
+        sheet.update_cell(
+            fila_idx,
+            13,
+            f"Error al crear usuario en QUIZORA: {str(e)}"
+        )
+
+    except Exception as e:
+        # Error inesperado: se deja evidencia en notas_admin.
+        try:
+            sheet.update_cell(
+                fila_idx,
+                13,
+                f"Error interno durante la validación: {str(e)}"
+            )
+        except Exception:
+            pass
 
     return redirect(url_for("admin_suscripciones"))
 
