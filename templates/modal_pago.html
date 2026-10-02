@@ -6,29 +6,12 @@
 <div class="subscription-simple">
   <h1 class="subscription-title">Suscripción a QUIZORA</h1>
 
-  <div class="credentials-notice">
-    <div class="credentials-notice-title">
-      Datos para crear tus credenciales
-    </div>
-
-    <p>
-      Tu usuario y contraseña se generarán automáticamente con los datos que escribas a continuación.
-    </p>
-
-    <ul>
-      <li>Escribe únicamente tu primer apellido.</li>
-      <li>No agregues segundo apellido, números ni símbolos.</li>
-    </ul>
-
-    <p class="credentials-notice-example">
-      Ejemplo correcto: <strong>Luis</strong> y <strong>Villegas</strong>
-    </p>
-  </div>
-
   {% if enviado_ok is defined %}
     {% if enviado_ok %}
       <p class="subscription-text subscription-message success-message">
-        Tus datos se enviaron correctamente. En breve un asesor validará tu suscripción.
+      Tu solicitud fue enviada correctamente. Un asesor validará tu pago y,
+       una vez confirmado, enviaremos tus credenciales al número de teléfono
+      registrado en el formulario.
       </p>
     {% else %}
       <p class="subscription-text subscription-message error-message">
