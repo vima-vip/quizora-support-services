@@ -1,20 +1,31 @@
-/* CONTENEDOR PRINCIPAL DEL WIDGET DE CHAT */
+/* =================================
+   ESTILOS GENERALES
+   ================================= */
+
+.quizora-chat-widget,
+.subscription-simple,
+.admin-card {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+/* =================================
+   WIDGET DE CHAT
+   ================================= */
+
 .quizora-chat-widget {
   width: 100%;
   max-width: 420px;
   margin: 24px auto;
-  background: #ffffff;
-  border-radius: 18px;
-  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.18);
-  border: 1px solid rgba(148, 163, 184, 0.45);
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #ffffff;
+  border: 1px solid rgba(148, 163, 184, 0.45);
+  border-radius: 18px;
+  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.18);
   font-size: 13px;
 }
 
-/* Encabezado del widget */
 .widget-header {
   display: flex;
   align-items: center;
@@ -25,86 +36,80 @@
 }
 
 .widget-header-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 28px;
   height: 28px;
   border-radius: 50%;
   background: #111827;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   color: #f9fafb;
-  font-weight: 700;
   font-size: 14px;
+  font-weight: 700;
 }
 
 .widget-header-text {
+  color: #111827;
   font-size: 13px;
   font-weight: 600;
-  color: #111827;
 }
 
-/* Área de mensajes del chat */
 .chat-messages {
   min-height: 180px;
   max-height: 260px;
-  padding: 10px 12px;
-  background: #f9fafb;
   overflow-y: auto;
+  padding: 10px 12px;
   box-sizing: border-box;
+  background: #f9fafb;
 }
 
-/* Mensajes: usuario vs QUIZORA */
-/* Usuario: alegre, resaltado a la derecha */
 .msg-user {
+  display: inline-block;
   margin: 6px 0;
-  text-align: right;
-  color: #2563eb;                         /* azul vivo */
-  font-weight: 600;
-  background: rgba(219, 234, 254, 0.9);   /* azul muy claro de fondo */
   padding: 4px 8px;
   border-radius: 12px;
-  display: inline-block;
+  background: rgba(219, 234, 254, 0.9);
+  color: #2563eb;
+  font-weight: 600;
+  text-align: right;
 }
 
-/* QUIZORA: más neutro, lectura cómoda */
 .msg-bot {
   margin: 6px 0;
-  text-align: left;
   color: #374151;
   font-weight: 500;
+  text-align: left;
 }
 
-/* Bloque del botón de pago dentro del widget */
 .payment-link-wrapper {
   padding: 10px 12px 14px;
-  text-align: center;
-  background: #f9fafb;
   border-top: 1px solid rgba(148, 163, 184, 0.35);
+  background: #f9fafb;
+  text-align: center;
 }
 
 .payment-link-text {
-  font-size: 12px;
-  color: #6b7280;
   margin-bottom: 6px;
+  color: #6b7280;
+  font-size: 12px;
 }
 
 .payment-link-btn {
   display: inline-block;
   padding: 8px 18px;
   border-radius: 999px;
-  background: #7CFC77;
+  background: #7cfc77;
+  box-shadow: 0 8px 18px rgba(124, 252, 119, 0.5);
   color: #111827;
-  text-decoration: none;
   font-size: 13px;
   font-weight: 600;
-  box-shadow: 0 8px 18px rgba(124, 252, 119, 0.5);
+  text-decoration: none;
 }
 
 .payment-link-btn:hover {
-  background: #A0FF9A;
+  background: #a0ff9a;
 }
 
-/* Fila de input + botón de Enviar */
 .chat-input-row {
   display: flex;
   gap: 8px;
@@ -116,22 +121,22 @@
 #chat-input {
   flex: 1;
   padding: 8px 10px;
-  border-radius: 999px;
   border: 1px solid #d1d5db;
-  font-size: 13px;
+  border-radius: 999px;
   box-sizing: border-box;
+  font-size: 13px;
 }
 
 #chat-input:focus {
   outline: none;
-  border-color: #7CFC77;
-  box-shadow: 0 0 0 1px #7CFC77;
+  border-color: #7cfc77;
+  box-shadow: 0 0 0 1px #7cfc77;
 }
 
 #chat-send {
   padding: 8px 14px;
+  border: 0;
   border-radius: 999px;
-  border: none;
   background: #111827;
   color: #f9fafb;
   font-size: 13px;
@@ -143,248 +148,17 @@
   background: #020617;
 }
 
-/* Tarjeta del formulario de pago (modal de suscripción simple) */
-.subscription-simple {
-  max-width: 420px;
-  margin: 24px auto;
-  padding: 16px 18px 20px;
-  background: #ffffff;
-  border-radius: 18px;
-  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.18);
-  border: 1px solid rgba(148, 163, 184, 0.45);
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-}
-
-.subscription-title {
-  margin: 0 0 8px;
-  font-size: 22px;
-  font-weight: 700;
-  color: #111827;
-  text-align: center;
-}
-
-.subscription-text {
-  margin: 6px 0;
-  font-size: 13px;
-  color: #4b5563;
-  text-align: center;
-}
-
-/* Imagen del QR de Yape */
-.yape-qr-img {
-  display: block;
-  margin: 16px auto;
-  max-width: 260px;
-  border-radius: 16px;
-  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.25);
-}
-
-/* Formulario dentro del modal */
-.subscription-form-simple {
-  margin-top: 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.subscription-form-simple label {
-  font-size: 12px;
-  font-weight: 600;
-  color: #374151;
-}
-
-.subscription-form-simple input {
-  padding: 8px 10px;
-  border-radius: 10px;
-  border: 1px solid #d1d5db;
-  font-size: 13px;
-  box-sizing: border-box;
-  background: #f9fafb;
-  color: #111827;
-}
-
-.subscription-form-simple input:focus {
-  outline: none;
-  border-color: #7CFC77;
-  box-shadow: 0 0 0 1px #7CFC77;
-  background: #ffffff;
-}
-
-.subscription-helper {
-  font-size: 11px;
-  color: #6b7280;
-}
-
-.subscription-btn {
-  margin-top: 12px;
-  padding: 8px 16px;
-  border-radius: 999px;
-  border: none;
-  background: #111827;
-  color: #f9fafb;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.subscription-btn:hover {
-  background: #020617;
-}
-
-
-.subscription-select {
-  padding: 8px 10px;
-  border-radius: 10px;
-  border: 1px solid #d1d5db;
-  font-size: 13px;
-  box-sizing: border-box;
-  background: #f9fafb;
-  color: #111827;
-}
-
-.subscription-select:focus {
-  outline: none;
-  border-color: #7CFC77;
-  box-shadow: 0 0 0 1px #7CFC77;
-  background: #ffffff;
-}
-
-/* Tarjeta del panel de administración de suscripciones */
-.admin-card {
-  max-width: 900px;
-  margin: 24px auto;
-  padding: 18px 20px 22px;
-  background: #ffffff;
-  border-radius: 18px;
-  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.18);
-  border: 1px solid rgba(148, 163, 184, 0.45);
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-}
-
-/* Encabezado del panel */
-.admin-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 14px;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.4);
-  padding-bottom: 8px;
-}
-
-.admin-title {
-  margin: 0;
-  font-size: 20px;
-  font-weight: 700;
-  color: #111827;
-}
-
-.admin-subtitle {
-  margin: 4px 0 0;
-  font-size: 12px;
-  color: #6b7280;
-}
-
-.admin-header-right {
-  font-size: 11px;
-  color: #9ca3af;
-}
-
-/* Tabla de suscripciones */
-.admin-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 10px;
-}
-
-.admin-table thead {
-  background: #111827;
-  color: #f9fafb;
-}
-
-.admin-table th,
-.admin-table td {
-  padding: 8px 10px;
-  font-size: 12px;
-  text-align: left;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.admin-table th {
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.admin-table tbody tr:nth-child(even) {
-  background: #f9fafb;
-}
-
-.admin-table tbody tr:hover {
-  background: #eef2ff;
-}
-
-/* Botón de acción Validar */
-.admin-action-btn {
-  padding: 6px 10px;
-  border-radius: 999px;
-  border: none;
-  background: #111827;
-  color: #f9fafb;
-  font-size: 11px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.admin-action-btn:hover {
-  background: #020617;
-}
-
-/* Estado vacío */
-.admin-empty {
-  margin-top: 16px;
-  font-size: 13px;
-  color: #6b7280;
-  text-align: center;
-}
-
-/* Responsivo del panel */
-@media (max-width: 768px) {
-  .admin-card {
-    max-width: 100%;
-    margin: 16px auto;
-    padding: 14px 12px 18px;
-  }
-
-  .admin-table th,
-  .admin-table td {
-    padding: 6px 6px;
-    font-size: 11px;
-  }
-
-/* Responsivo general */
-@media (max-width: 480px) {
-  .quizora-chat-widget,
-  .subscription-simple {
-    max-width: 100%;
-    margin: 16px auto;
-  }
-
-  .chat-messages {
-    max-height: 260px;
-  }
-}
-
-
 /* =================================
-   DISEÑO ELEGANTE: PAGO Y SUSCRIPCIÓN
+   FORMULARIO DE SUSCRIPCIÓN
    ================================= */
 
 .subscription-simple {
   max-width: 460px;
   margin: 32px auto;
   padding: 28px;
-  background: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 20px;
+  background: #ffffff;
   box-shadow: 0 18px 45px rgba(15, 23, 42, 0.12);
 }
 
@@ -405,7 +179,7 @@
   text-align: center;
 }
 
-/* Aviso principal: visible antes de pagar o completar el formulario */
+/* Aviso azul: creación de credenciales */
 .credentials-notice {
   margin: 16px 0 18px;
   padding: 16px;
@@ -439,45 +213,17 @@
   margin: 4px 0;
 }
 
-.credentials-notice-example {
-  margin-top: 10px !important;
-  padding-top: 9px;
-  border-top: 1px solid #dbeafe;
-  color: #1e40af;
-}
-
-/* Mensajes del sistema */
-.subscription-message {
-  padding: 10px 12px;
-  border-radius: 10px;
-  font-weight: 600;
-}
-
-.success-message {
-  border: 1px solid #bbf7d0;
-  background: #f0fdf4;
-  color: #15803d;
-}
-
-.error-message {
-  border: 1px solid #fecaca;
-  background: #fef2f2;
-  color: #dc2626;
-}
-
-/* QR con borde y sombra discreta */
 .yape-qr-img {
   display: block;
   width: min(100%, 250px);
   margin: 20px auto 14px;
   padding: 10px;
-  background: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 16px;
+  background: #ffffff;
   box-shadow: 0 10px 24px rgba(15, 23, 42, 0.1);
 }
 
-/* Campos */
 .subscription-form-simple {
   display: flex;
   flex-direction: column;
@@ -533,7 +279,6 @@
   line-height: 1.45;
 }
 
-/* Botón principal */
 .subscription-btn {
   width: 100%;
   min-height: 46px;
@@ -560,6 +305,294 @@
   opacity: 0.7;
 }
 
+/* =================================
+   PANEL DE ADMINISTRACIÓN
+   ================================= */
+
+.admin-card {
+  max-width: 900px;
+  margin: 24px auto;
+  padding: 18px 20px 22px;
+  border: 1px solid rgba(148, 163, 184, 0.45);
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.18);
+}
+
+.admin-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.4);
+}
+
+.admin-title {
+  margin: 0;
+  color: #111827;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.admin-subtitle {
+  margin: 4px 0 0;
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.admin-header-right {
+  color: #9ca3af;
+  font-size: 11px;
+}
+
+.admin-table {
+  width: 100%;
+  margin-top: 10px;
+  border-collapse: collapse;
+}
+
+.admin-table thead {
+  background: #111827;
+  color: #f9fafb;
+}
+
+.admin-table th,
+.admin-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 12px;
+  text-align: left;
+}
+
+.admin-table th {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.admin-table tbody tr:nth-child(even) {
+  background: #f9fafb;
+}
+
+.admin-table tbody tr:hover {
+  background: #eef2ff;
+}
+
+.admin-action-btn {
+  padding: 6px 10px;
+  border: 0;
+  border-radius: 999px;
+  background: #111827;
+  color: #f9fafb;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.admin-action-btn:hover {
+  background: #020617;
+}
+
+.admin-empty {
+  margin-top: 16px;
+  color: #6b7280;
+  font-size: 13px;
+  text-align: center;
+}
+
+/* =================================
+   MODALES: ÉXITO Y ERROR
+   ================================= */
+
+.success-modal-overlay,
+.error-modal-overlay {
+  position: fixed;
+  z-index: 9999;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  box-sizing: border-box;
+  background: rgba(15, 23, 42, 0.62);
+  backdrop-filter: blur(4px);
+}
+
+.success-modal,
+.error-modal {
+  width: 100%;
+  max-width: 480px;
+  padding: 36px 30px 30px;
+  border-radius: 22px;
+  box-sizing: border-box;
+  text-align: center;
+  animation: modalAppear 0.22s ease-out;
+}
+
+.success-modal {
+  border: 1px solid #86efac;
+  background: linear-gradient(145deg, #f0fdf4 0%, #ffffff 76%);
+  box-shadow: 0 24px 60px rgba(22, 163, 74, 0.28);
+}
+
+.error-modal {
+  border: 1px solid #fca5a5;
+  background: linear-gradient(145deg, #fef2f2 0%, #ffffff 76%);
+  box-shadow: 0 24px 60px rgba(220, 38, 38, 0.28);
+}
+
+.success-modal-icon,
+.error-modal-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 68px;
+  height: 68px;
+  margin: 0 auto 18px;
+  border-radius: 50%;
+  color: #ffffff;
+  font-size: 38px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.success-modal-icon {
+  background: #16a34a;
+  box-shadow: 0 10px 22px rgba(22, 163, 74, 0.28);
+}
+
+.error-modal-icon {
+  background: #dc2626;
+  box-shadow: 0 10px 22px rgba(220, 38, 38, 0.25);
+}
+
+.success-modal h2,
+.error-modal h2 {
+  margin: 0 0 14px;
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.4px;
+}
+
+.success-modal h2 {
+  color: #15803d;
+}
+
+.error-modal h2 {
+  color: #b91c1c;
+}
+
+.success-modal-highlight,
+.error-modal-highlight {
+  margin: 0 0 12px;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.success-modal-highlight {
+  color: #166534;
+}
+
+.error-modal-highlight {
+  color: #991b1b;
+}
+
+.success-modal-text,
+.error-modal-text {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.6;
+}
+
+.success-modal-text {
+  color: #166534;
+}
+
+.error-modal-text {
+  color: #7f1d1d;
+}
+
+.success-modal-note,
+.error-modal-note {
+  margin: 18px 0 24px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.success-modal-note {
+  color: #3f6212;
+}
+
+.error-modal-note {
+  color: #991b1b;
+}
+
+.success-modal-button,
+.error-modal-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 46px;
+  padding: 0 28px;
+  border-radius: 11px;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: transform 0.18s ease, background 0.18s ease;
+}
+
+.success-modal-button {
+  background: #16a34a;
+  box-shadow: 0 8px 18px rgba(22, 163, 74, 0.24);
+}
+
+.success-modal-button:hover {
+  transform: translateY(-1px);
+  background: #15803d;
+}
+
+.error-modal-button {
+  background: #dc2626;
+  box-shadow: 0 8px 18px rgba(220, 38, 38, 0.22);
+}
+
+.error-modal-button:hover {
+  transform: translateY(-1px);
+  background: #b91c1c;
+}
+
+@keyframes modalAppear {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* =================================
+   DISEÑO RESPONSIVO
+   ================================= */
+
+@media (max-width: 768px) {
+  .admin-card {
+    max-width: 100%;
+    margin: 16px auto;
+    padding: 14px 12px 18px;
+  }
+
+  .admin-table th,
+  .admin-table td {
+    padding: 6px;
+    font-size: 11px;
+  }
+}
+
 @media (max-width: 520px) {
   .subscription-simple {
     margin: 16px 12px;
@@ -570,105 +603,155 @@
   .subscription-title {
     font-size: 22px;
   }
-}
 
-
-/* Modal rojo: solicitud duplicada o error de registro */
-.error-modal-overlay {
-  position: fixed;
-  z-index: 1001;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  background: rgba(15, 23, 42, 0.58);
-  backdrop-filter: blur(3px);
-}
-
-.error-modal {
-  width: 100%;
-  max-width: 480px;
-  padding: 36px 30px 30px;
-  border: 1px solid #fca5a5;
-  border-radius: 22px;
-  background: linear-gradient(145deg, #fef2f2 0%, #ffffff 76%);
-  box-shadow: 0 24px 60px rgba(127, 29, 29, 0.25);
-  text-align: center;
-}
-
-.error-modal-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 68px;
-  height: 68px;
-  margin: 0 auto 18px;
-  border-radius: 50%;
-  background: #dc2626;
-  box-shadow: 0 10px 22px rgba(220, 38, 38, 0.25);
-  color: #ffffff;
-  font-size: 38px;
-  font-weight: 800;
-}
-
-.error-modal h2 {
-  margin: 0 0 14px;
-  color: #b91c1c;
-  font-size: 26px;
-  font-weight: 800;
-  letter-spacing: -0.4px;
-}
-
-.error-modal-highlight {
-  margin: 0 0 12px;
-  color: #991b1b;
-  font-size: 16px;
-  font-weight: 800;
-}
-
-.error-modal-text {
-  margin: 0;
-  color: #7f1d1d;
-  font-size: 14px;
-  font-weight: 600;
-  line-height: 1.6;
-}
-
-.error-modal-note {
-  margin: 18px 0 24px;
-  color: #991b1b;
-  font-size: 13px;
-  line-height: 1.5;
-}
-
-.error-modal-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 46px;
-  padding: 0 28px;
-  border-radius: 11px;
-  background: #dc2626;
-  box-shadow: 0 8px 18px rgba(220, 38, 38, 0.22);
-  color: #ffffff;
-  font-size: 14px;
-  font-weight: 700;
-  text-decoration: none;
-  transition: transform 0.18s ease, background 0.18s ease;
-}
-
-.error-modal-button:hover {
-  transform: translateY(-1px);
-  background: #b91c1c;
-}
-
-@media (max-width: 520px) {
+  .success-modal,
   .error-modal {
     padding: 30px 20px 24px;
   }
 
+  .success-modal h2,
   .error-modal h2 {
     font-size: 22px;
   }
+}
+
+@media (max-width: 480px) {
+  .quizora-chat-widget,
+  .subscription-simple {
+    max-width: 100%;
+  }
+
+  .chat-messages {
+    max-height: 260px;
+  }
+
+
+/* =================================
+   CHAT A PANTALLA COMPLETA EN CELULAR
+   ================================= */
+
+@media (max-width: 600px) {
+  html,
+  body {
+    width: 100%;
+    min-height: 100%;
+    margin: 0;
+  }
+
+  body {
+    overflow: hidden;
+  }
+
+  .quizora-chat-widget {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    width: 100%;
+    max-width: none;
+    height: 100dvh;
+    min-height: 100dvh;
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    background: #f8fafc;
+  }
+
+  .widget-header {
+    flex: 0 0 auto;
+    padding: calc(14px + env(safe-area-inset-top)) 16px 14px;
+    border-bottom: 1px solid #e2e8f0;
+    background: #ffffff;
+  }
+
+  .widget-header-logo {
+    width: 34px;
+    height: 34px;
+    font-size: 16px;
+  }
+
+  .widget-header-text {
+    font-size: 15px;
+  }
+
+  .chat-messages {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: none;
+    padding: 18px 16px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    background: #f8fafc;
+    font-size: 14px;
+  }
+
+  .msg-user,
+  .msg-bot {
+    max-width: 85%;
+    line-height: 1.45;
+  }
+
+  .msg-user {
+    float: right;
+    clear: both;
+    margin-left: 15%;
+    padding: 9px 12px;
+    border-radius: 16px 16px 4px 16px;
+  }
+
+  .msg-bot {
+    clear: both;
+    margin-right: 15%;
+    padding: 9px 12px;
+    border-radius: 16px 16px 16px 4px;
+    background: #ffffff;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+  }
+
+  .payment-link-wrapper {
+    flex: 0 0 auto;
+    padding: 14px 16px 16px;
+    border-top: 1px solid #e2e8f0;
+    background: #ffffff;
+  }
+
+  .payment-link-text {
+    margin-bottom: 10px;
+    font-size: 13px;
+    line-height: 1.4;
+  }
+
+  .payment-link-btn {
+    width: 100%;
+    padding: 12px 16px;
+    box-sizing: border-box;
+    border-radius: 12px;
+    font-size: 14px;
+    text-align: center;
+  }
+
+  .chat-input-row {
+    flex: 0 0 auto;
+    gap: 10px;
+    padding: 12px 14px calc(12px + env(safe-area-inset-bottom));
+    border-top: 1px solid #e2e8f0;
+    background: #ffffff;
+  }
+
+  #chat-input {
+    min-width: 0;
+    min-height: 46px;
+    padding: 10px 14px;
+    border-radius: 14px;
+    font-size: 16px;
+  }
+
+  #chat-send {
+    min-height: 46px;
+    padding: 10px 16px;
+    border-radius: 14px;
+    font-size: 14px;
+  }
+}
+  
 }
