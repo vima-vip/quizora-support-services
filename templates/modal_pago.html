@@ -35,13 +35,48 @@
   <form method="post"
         action="{{ url_for('registro_suscripcion') }}"
         class="subscription-form-simple">
+<div class="credentials-notice">
+  <div class="credentials-notice-title">
+    Datos para crear tus credenciales
+  </div>
 
-    <label for="nombres">Nombres completos</label>
-    <input type="text" id="nombres" name="nombres" required>
+  <p>
+    Tu usuario y contraseña se generarán automáticamente con los datos que escribas a continuación.
+  </p>
 
+  <ul>
+    <li>Escribe únicamente tu primer nombre.</li>
+    <li>Escribe únicamente tu primer apellido.</li>
+    <li>No agregues segundo nombre, segundo apellido, números ni símbolos.</li>
+  </ul>
+
+  <p class="credentials-notice-example">
+    Ejemplo correcto: <strong>Luis</strong> y <strong>Villena</strong>
+  </p>
+</div>
+
+    <label for="nombres">Primer nombre</label>
+    <input
+      id="nombres"
+      name="nombres"
+      type="text"
+      placeholder="Ejemplo: Luis"
+      pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ]+"
+      title="Ingresa solo un nombre, sin espacios ni símbolos."
+      required
+    >
+    
     <label for="primer_apellido">Primer apellido</label>
-    <input type="text" id="primer_apellido" name="primer_apellido" required>
-
+    <input
+      id="primer_apellido"
+      name="primer_apellido"
+      type="text"
+      placeholder="Ejemplo: Villena"
+      pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ]+"
+      title="Ingresa solo un apellido, sin espacios ni símbolos."
+      required
+    >
+    
     <label for="especialidad">Especialidad (código)</label>
     <select id="especialidad" name="especialidad" class="subscription-select" required>
       <option value="" disabled selected>Selecciona tu especialidad</option>
