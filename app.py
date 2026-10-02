@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify, render_template, redirect, url_for
 from flask_cors import CORS
 from datetime import datetime
 import os
+import re
 import requests
 
 from soporte import procesar_mensaje
@@ -79,11 +80,35 @@ def form_suscripcion():
 def registro_suscripcion():
     datos = request.form.to_dict() or {}
 
+    # Datos usados por Apps Script para generar las credenciales.
+    nombres = datos.get("nombres", "").strip()
+    primer_apellido = datos.get("primer_apellido", "").strip()
     dni = datos.get("dni", "").strip()
     especialidad = datos.get("especialidad", "").strip()
     telefono = datos.get("telefono", "").strip()
 
-    # Si faltan datos clave, simplemente mostramos error
+    # Solo se permite un nombre y un apellido:
+    # letras, tildes y ñ; sin espacios, números ni símbolos.
+    nombre_valido = re.fullmatch(
+        r"[A-Za-zÁÉÍÓÚáéíóúÑñ]+",
+        nombres
+    )
+    apellido_valido = re.fullmatch(
+        r"[A-Za-zÁÉÍÓÚáéíóúÑñ]+",
+        primer_apellido
+    )
+
+    if not nombre_valido or not apellido_valido:
+        return render_template(
+            "modal_pago.html",
+            enviado_ok=False,
+            error=(
+                "Para crear tus credenciales, escribe solamente tu primer "
+                "nombre y tu primer apellido, sin espacios, números ni símbolos."
+            )
+        ), 400
+
+    # Verifica los demás campos requeridos.
     if not dni or not especialidad or not telefono:
         return render_template(
             "modal_pago.html",
@@ -91,13 +116,13 @@ def registro_suscripcion():
             error="Faltan datos de DNI, especialidad o teléfono para registrar la suscripción."
         ), 400
 
+    # Teléfono peruano: nueve dígitos y empieza por 9.
     if not telefono.isdigit() or len(telefono) != 9 or not telefono.startswith("9"):
         return render_template(
             "modal_pago.html",
             enviado_ok=False,
             error="Ingresa un número de teléfono válido de 9 dígitos."
         ), 400
-
     
     try:
         # 1. Revisar si ya existe una fila con mismo DNI y especialidad
