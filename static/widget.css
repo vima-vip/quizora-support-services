@@ -755,3 +755,29 @@
 }
   
 }
+
+
+.chat-link {
+  display: inline-block;
+  clear: both;
+  margin: 8px 0 12px;
+  padding: 9px 12px;
+  border-radius: 10px;
+  background: #2563eb;
+  box-shadow: 0 6px 14px rgba(37, 99, 235, 0.2);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.chat-link:hover {
+  background: #1d4ed8;
+}
+
+@media (max-width: 600px) {
+  .chat-link {
+    max-width: 85%;
+    box-sizing: border-box;
+  }
+}
