@@ -372,3 +372,41 @@
     max-height: 260px;
   }
 }
+
+
+/* Aviso sobre generación automática de credenciales */
+.credentials-notice {
+  margin: 8px 0 12px;
+  padding: 12px 14px;
+  border: 1px solid #bfdbfe;
+  border-left: 4px solid #2563eb;
+  border-radius: 10px;
+  background: #eff6ff;
+  color: #1e3a5f;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.credentials-notice-title {
+  margin-bottom: 5px;
+  color: #1d4ed8;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.credentials-notice p {
+  margin: 5px 0;
+}
+
+.credentials-notice ul {
+  margin: 7px 0;
+  padding-left: 18px;
+}
+
+.credentials-notice li {
+  margin: 3px 0;
+}
+
+.credentials-notice-example {
+  color: #1e40af;
+}
