@@ -379,7 +379,7 @@ def procesar_verificados():
             actualizar_registro_ventas(
                 row_index=idx,
                 usuario_generado=resultado["username"],
-                password_generado_hash=resultado["password_hash"],
+                password_generado=resultado["raw_password"],
                 fecha_activacion_iso=datetime.utcnow().isoformat()
             )
 
