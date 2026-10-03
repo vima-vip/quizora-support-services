@@ -424,6 +424,75 @@ def validar_suscripcion():
     return redirect(url_for("admin_suscripciones"))
 
 
+# Elimina solo solicitudes pendientes del Google Sheet.
+# No modifica ni elimina usuarios en la base de datos de QUIZORA.
+@app.post("/admin/eliminar-solicitud")
+@admin_required
+def eliminar_solicitud():
+    id_registro = request.form.get("id_registro", "").strip()
+
+    if not id_registro:
+        flash("No se recibió el ID de la solicitud.", "error")
+        return redirect(url_for("admin_suscripciones"))
+
+    try:
+        gc = get_client()
+        sh = gc.open("QUIZORA_Ventas")
+        sheet = sh.worksheet("REGISTROS_SUSCRIPCION")
+
+        # Busca exclusivamente el ID de registro en la columna A.
+        celda_id = sheet.find(
+            id_registro,
+            in_column=1,
+            case_sensitive=True
+        )
+
+        if not celda_id:
+            flash("La solicitud no fue encontrada en Google Sheets.", "error")
+            return redirect(url_for("admin_suscripciones"))
+
+        fila_idx = celda_id.row
+        encabezados = sheet.row_values(1)
+        valores = sheet.row_values(fila_idx)
+
+        fila = {
+            encabezados[i]: valores[i] if i < len(valores) else ""
+            for i in range(len(encabezados))
+        }
+
+        estado = str(fila.get("estado_verificacion", "")).strip().lower()
+
+        # Protección principal:
+        # solo elimina registros que siguen Pendientes.
+        if estado != "pendiente":
+            flash(
+                "No se eliminó la solicitud porque ya fue validada o procesada. "
+                "No se hizo ningún cambio en QUIZORA.",
+                "error"
+            )
+            return redirect(url_for("admin_suscripciones"))
+
+        nombre = (
+            f"{fila.get('nombres', '')} "
+            f"{fila.get('primer_apellido', '')}"
+        ).strip()
+
+        # Elimina únicamente la fila en Google Sheets.
+        sheet.delete_rows(fila_idx)
+
+        flash(
+            f"Solicitud de {nombre or id_registro} eliminada de Google Sheets.",
+            "success"
+        )
+
+    except Exception:
+        flash(
+            "No se pudo eliminar la solicitud de Google Sheets. Intenta nuevamente.",
+            "error"
+        )
+
+    return redirect(url_for("admin_suscripciones"))
+
 # Worker opcional (si sigues usando flujo directo a Neon)
 @app.post("/procesar_verificados")
 def procesar_verificados():
