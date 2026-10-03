@@ -275,7 +275,6 @@ def admin_logout():
     session.clear()
     return redirect(url_for("admin_login"))
 
-
 # Dashboard admin
 @app.get("/admin/suscripciones")
 @admin_required
