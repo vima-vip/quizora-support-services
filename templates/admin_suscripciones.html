@@ -5,30 +5,29 @@
 {% block content %}
 <main class="admin-shell">
   <header class="admin-header">
-  <div class="brand">
-    <div class="brand-mark" aria-hidden="true">Q</div>
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">Q</div>
 
-    <div>
-      <p class="eyebrow">Panel privado</p>
-      <h1>Validación de suscripciones</h1>
-    </div>
-  </div>
-
-  <div class="header-actions">
-    <div class="secure-badge" aria-label="Zona administrativa protegida">
-      <span class="secure-dot"></span>
-      Acceso administrativo
+      <div>
+        <p class="eyebrow">Panel privado</p>
+        <h1>Validación de suscripciones</h1>
+      </div>
     </div>
 
-    <form action="{{ url_for('admin_logout') }}" method="post" class="logout-form">
-      <button type="submit" class="logout-btn">
-        Cerrar sesión
-      </button>
-    </form>
-  </div>
-</header>
+    <div class="header-actions">
+      <div class="secure-badge" aria-label="Zona administrativa protegida">
+        <span class="secure-dot"></span>
+        Acceso administrativo
+      </div>
 
-  
+      <form action="{{ url_for('admin_logout') }}" method="post" class="logout-form">
+        <button type="submit" class="logout-btn">
+          Cerrar sesión
+        </button>
+      </form>
+    </div>
+  </header>
+
   <section class="intro-card" aria-labelledby="panel-title">
     <div>
       <p class="eyebrow">Revisión de pagos</p>
@@ -44,6 +43,18 @@
       <strong>{{ suscripciones|length }}</strong>
     </div>
   </section>
+
+  {% with mensajes = get_flashed_messages(with_categories=true) %}
+    {% if mensajes %}
+      <section class="flash-messages" aria-live="polite">
+        {% for categoria, mensaje in mensajes %}
+          <div class="flash-message flash-{{ categoria }}">
+            {{ mensaje }}
+          </div>
+        {% endfor %}
+      </section>
+    {% endif %}
+  {% endwith %}
 
   {% if suscripciones %}
   <section class="subscription-list" aria-label="Suscripciones pendientes">
@@ -61,7 +72,15 @@
           </div>
         </div>
 
-        <span class="status status-pending">Pendiente</span>
+        {% if s.usuario_generado and s.password_generado %}
+          <span class="status status-ready">
+            Credenciales creadas
+          </span>
+        {% else %}
+          <span class="status status-pending">
+            Esperando credenciales
+          </span>
+        {% endif %}
       </div>
 
       <dl class="data-grid">
@@ -77,7 +96,7 @@
 
         <div>
           <dt>DNI</dt>
-          <dd class="mono masked-data" data-sensitive="{{ s.dni }}">
+          <dd class="mono masked-data">
             {% set dni_texto = s.dni|string %}
             {{ dni_texto[:2] }}******{{ dni_texto[-2:] }}
           </dd>
@@ -110,7 +129,7 @@
 
           <div>
             <span>Contraseña temporal</span>
-            <code class="password-value" data-password="{{ s.password_generado or '' }}">
+            <code class="password-value">
               {% if s.password_generado %}
                 •••••••••••••
               {% else %}
@@ -120,15 +139,18 @@
           </div>
         </div>
 
+        {% if s.password_generado %}
         <button
           type="button"
           class="text-button show-password"
           data-target="password-{{ loop.index }}"
-          data-password="{{ s.password_generado or '' }}"
+          data-password="{{ s.password_generado }}"
         >
           Mostrar contraseña temporal
         </button>
+
         <code id="password-{{ loop.index }}" class="password-reveal" hidden></code>
+        {% endif %}
       </details>
 
       <div class="card-actions">
@@ -158,6 +180,19 @@
             Validar y crear cuenta
           </button>
         </form>
+
+        <form
+          method="post"
+          action="{{ url_for('eliminar_solicitud') }}"
+          class="delete-form"
+          data-name="{{ s.nombres|title }} {{ s.primer_apellido|title }}"
+        >
+          <input type="hidden" name="id_registro" value="{{ s.id_registro }}">
+
+          <button type="submit" class="btn btn-danger">
+            Eliminar solicitud
+          </button>
+        </form>
       </div>
     </article>
     {% endfor %}
@@ -178,7 +213,10 @@
       <p class="eyebrow">Revisión previa</p>
       <h2 id="modal-name">Datos de suscripción</h2>
     </div>
-    <button type="button" class="icon-close" data-close-modal aria-label="Cerrar">×</button>
+
+    <button type="button" class="icon-close" data-close-modal aria-label="Cerrar">
+      ×
+    </button>
   </div>
 
   <div class="modal-data">
@@ -201,7 +239,10 @@
       <p class="eyebrow">Acción irreversible</p>
       <h2>¿Crear cuenta en QUIZORA?</h2>
     </div>
-    <button type="button" class="icon-close" data-close-confirm aria-label="Cerrar">×</button>
+
+    <button type="button" class="icon-close" data-close-confirm aria-label="Cerrar">
+      ×
+    </button>
   </div>
 
   <p class="confirm-copy">
@@ -210,9 +251,41 @@
   </p>
 
   <div class="confirm-actions">
-    <button type="button" class="btn btn-secondary" data-close-confirm>Cancelar</button>
+    <button type="button" class="btn btn-secondary" data-close-confirm>
+      Cancelar
+    </button>
+
     <button type="button" class="btn btn-primary" id="confirm-submit">
       Sí, crear cuenta
+    </button>
+  </div>
+</dialog>
+
+<dialog id="delete-modal" class="review-modal delete-modal">
+  <div class="modal-header">
+    <div>
+      <p class="eyebrow">Eliminar solicitud pendiente</p>
+      <h2>¿Eliminar esta solicitud?</h2>
+    </div>
+
+    <button type="button" class="icon-close" data-close-delete aria-label="Cerrar">
+      ×
+    </button>
+  </div>
+
+  <p class="delete-copy">
+    Se eliminará la solicitud de <strong id="delete-name"></strong> únicamente
+    de Google Sheets. No se borrará ningún usuario de la base de datos de QUIZORA.
+    Esta acción no se puede deshacer.
+  </p>
+
+  <div class="confirm-actions">
+    <button type="button" class="btn btn-secondary" data-close-delete>
+      Cancelar
+    </button>
+
+    <button type="button" class="btn btn-danger" id="delete-submit">
+      Sí, eliminar solicitud
     </button>
   </div>
 </dialog>
@@ -230,10 +303,17 @@
     --primary-soft: #e5f4f1;
     --warning: #9a6700;
     --warning-soft: #fff5d6;
+    --danger: #dc2626;
+    --danger-hover: #b91c1c;
+    --danger-soft: #fee2e2;
+    --success: #166534;
+    --success-soft: #dcfce7;
     --shadow: 0 12px 32px rgba(19, 36, 61, 0.08);
   }
 
-  * { box-sizing: border-box; }
+  * {
+    box-sizing: border-box;
+  }
 
   body {
     margin: 0;
@@ -257,6 +337,34 @@
     align-items: center;
     justify-content: space-between;
     gap: 16px;
+  }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .logout-form,
+  .delete-form {
+    margin: 0;
+  }
+
+  .logout-btn {
+    min-height: 36px;
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    background: #fff;
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.85rem;
+    font-weight: 800;
+  }
+
+  .logout-btn:hover {
+    background: var(--surface-soft);
   }
 
   .brand,
@@ -288,11 +396,24 @@
     font-size: 14px;
   }
 
-  h1, h2, h3, p { margin: 0; }
+  h1,
+  h2,
+  h3,
+  p {
+    margin: 0;
+  }
 
-  h1 { font-size: clamp(1.45rem, 3vw, 2rem); }
-  h2 { font-size: clamp(1.2rem, 2vw, 1.55rem); }
-  h3 { font-size: 1.05rem; }
+  h1 {
+    font-size: clamp(1.45rem, 3vw, 2rem);
+  }
+
+  h2 {
+    font-size: clamp(1.2rem, 2vw, 1.55rem);
+  }
+
+  h3 {
+    font-size: 1.05rem;
+  }
 
   .eyebrow {
     margin-bottom: 4px;
@@ -322,8 +443,8 @@
   .secure-dot {
     width: 8px;
     height: 8px;
-    background: var(--primary);
     border-radius: 50%;
+    background: var(--primary);
   }
 
   .intro-card {
@@ -332,25 +453,25 @@
     gap: 24px;
     margin: 28px 0;
     padding: 24px;
-    background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 18px;
+    background: var(--surface);
     box-shadow: var(--shadow);
   }
 
   .intro-card p:not(.eyebrow) {
+    max-width: 62ch;
     margin-top: 10px;
     color: var(--muted);
-    max-width: 62ch;
   }
 
   .pending-counter {
     min-width: 120px;
     padding: 16px;
-    color: var(--primary);
-    text-align: center;
-    background: var(--primary-soft);
     border-radius: 14px;
+    color: var(--primary);
+    background: var(--primary-soft);
+    text-align: center;
   }
 
   .pending-counter span {
@@ -365,6 +486,30 @@
     font-size: 2rem;
   }
 
+  .flash-messages {
+    display: grid;
+    gap: 10px;
+    margin: 0 0 22px;
+  }
+
+  .flash-message {
+    padding: 13px 16px;
+    border-radius: 12px;
+    font-weight: 700;
+  }
+
+  .flash-success {
+    color: var(--success);
+    background: var(--success-soft);
+    border: 1px solid #86efac;
+  }
+
+  .flash-error {
+    color: #991b1b;
+    background: var(--danger-soft);
+    border: 1px solid #fca5a5;
+  }
+
   .subscription-list {
     display: grid;
     gap: 16px;
@@ -372,9 +517,9 @@
 
   .subscription-card {
     padding: 22px;
-    background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 18px;
+    background: var(--surface);
     box-shadow: 0 4px 14px rgba(19, 36, 61, 0.04);
   }
 
@@ -389,6 +534,11 @@
     background: var(--warning-soft);
   }
 
+  .status-ready {
+    color: var(--success);
+    background: var(--success-soft);
+  }
+
   .data-grid,
   .modal-data {
     display: grid;
@@ -400,9 +550,9 @@
   .data-grid div,
   .modal-data div {
     padding: 12px;
-    background: var(--surface-soft);
     border: 1px solid var(--border);
     border-radius: 12px;
+    background: var(--surface-soft);
   }
 
   dt,
@@ -428,9 +578,9 @@
 
   .credentials-box {
     padding: 16px;
-    background: #fcfdff;
     border: 1px dashed #cdd7e5;
     border-radius: 12px;
+    background: #fcfdff;
   }
 
   .credentials-box summary {
@@ -457,9 +607,9 @@
   .text-button {
     margin-top: 14px;
     padding: 0;
+    border: 0;
     color: var(--primary);
     background: transparent;
-    border: 0;
     cursor: pointer;
     font-weight: 700;
   }
@@ -467,8 +617,8 @@
   .password-reveal {
     margin-top: 10px;
     padding: 8px 10px;
-    background: var(--warning-soft);
     border-radius: 8px;
+    background: var(--warning-soft);
   }
 
   .card-actions {
@@ -491,22 +641,35 @@
     background: var(--primary);
   }
 
-  .btn-primary:hover { background: var(--primary-hover); }
-
-  .btn-secondary {
-    color: var(--text);
-    background: #fff;
-    border-color: var(--border);
+  .btn-primary:hover {
+    background: var(--primary-hover);
   }
 
-  .btn-secondary:hover { background: var(--surface-soft); }
+  .btn-secondary {
+    border-color: var(--border);
+    color: var(--text);
+    background: #fff;
+  }
+
+  .btn-secondary:hover {
+    background: var(--surface-soft);
+  }
+
+  .btn-danger {
+    color: #fff;
+    background: var(--danger);
+  }
+
+  .btn-danger:hover {
+    background: var(--danger-hover);
+  }
 
   .empty-state {
     padding: 64px 24px;
-    text-align: center;
-    background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 18px;
+    background: var(--surface);
+    text-align: center;
   }
 
   .empty-icon {
@@ -515,9 +678,9 @@
     height: 48px;
     margin: 0 auto 14px;
     place-items: center;
+    border-radius: 50%;
     color: var(--primary);
     background: var(--primary-soft);
-    border-radius: 50%;
     font-size: 1.4rem;
     font-weight: 800;
   }
@@ -530,10 +693,10 @@
   .review-modal {
     width: min(620px, calc(100% - 28px));
     padding: 24px;
-    color: var(--text);
-    background: var(--surface);
     border: 0;
     border-radius: 18px;
+    color: var(--text);
+    background: var(--surface);
     box-shadow: 0 24px 70px rgba(9, 20, 39, 0.26);
   }
 
@@ -553,13 +716,23 @@
   }
 
   .security-note,
-  .confirm-copy {
+  .confirm-copy,
+  .delete-copy {
     margin-top: 20px;
     padding: 14px;
-    color: #694b00;
-    background: var(--warning-soft);
     border-radius: 10px;
     line-height: 1.5;
+  }
+
+  .security-note,
+  .confirm-copy {
+    color: #694b00;
+    background: var(--warning-soft);
+  }
+
+  .delete-copy {
+    color: #991b1b;
+    background: var(--danger-soft);
   }
 
   @media (max-width: 720px) {
@@ -572,6 +745,11 @@
     .intro-card,
     .card-top,
     .card-actions {
+      align-items: stretch;
+      flex-direction: column;
+    }
+
+    .header-actions {
       align-items: stretch;
       flex-direction: column;
     }
@@ -589,7 +767,9 @@
 
     .card-actions .btn,
     .card-actions form,
-    .card-actions form .btn {
+    .card-actions form .btn,
+    .logout-form,
+    .logout-form .logout-btn {
       width: 100%;
     }
 
@@ -602,7 +782,10 @@
 <script>
   const reviewModal = document.getElementById("review-modal");
   const confirmModal = document.getElementById("confirm-modal");
-  let pendingForm = null;
+  const deleteModal = document.getElementById("delete-modal");
+
+  let pendingValidationForm = null;
+  let pendingDeleteForm = null;
 
   document.querySelectorAll(".open-review").forEach((button) => {
     button.addEventListener("click", () => {
@@ -624,8 +807,10 @@
   document.querySelectorAll(".show-password").forEach((button) => {
     button.addEventListener("click", () => {
       const output = document.getElementById(button.dataset.target);
+
       output.textContent = button.dataset.password;
       output.hidden = !output.hidden;
+
       button.textContent = output.hidden
         ? "Mostrar contraseña temporal"
         : "Ocultar contraseña temporal";
@@ -635,9 +820,10 @@
   document.querySelectorAll(".validate-form").forEach((form) => {
     form.addEventListener("submit", (event) => {
       event.preventDefault();
-      pendingForm = form;
+      pendingValidationForm = form;
 
       const button = form.querySelector("button[type='submit']");
+
       document.getElementById("confirm-name").textContent = button.dataset.name;
       document.getElementById("confirm-user").textContent = button.dataset.user;
 
@@ -650,8 +836,28 @@
   });
 
   document.getElementById("confirm-submit").addEventListener("click", () => {
-    if (pendingForm) {
-      pendingForm.submit();
+    if (pendingValidationForm) {
+      pendingValidationForm.submit();
+    }
+  });
+
+  document.querySelectorAll(".delete-form").forEach((form) => {
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      pendingDeleteForm = form;
+
+      document.getElementById("delete-name").textContent = form.dataset.name;
+      deleteModal.showModal();
+    });
+  });
+
+  document.querySelectorAll("[data-close-delete]").forEach((button) => {
+    button.addEventListener("click", () => deleteModal.close());
+  });
+
+  document.getElementById("delete-submit").addEventListener("click", () => {
+    if (pendingDeleteForm) {
+      pendingDeleteForm.submit();
     }
   });
 </script>
