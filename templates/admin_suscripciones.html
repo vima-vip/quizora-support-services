@@ -1,182 +1,647 @@
 {% extends "base.html" %}
 
-{% block title %}Suscripciones pendientes de validación{% endblock %}
+{% block title %}QUIZORA · Validación de suscripciones{% endblock %}
 
 {% block content %}
-<div class="admin-subscriptions">
-  <div class="admin-header">
-    <div>
-      <h1>Suscripciones pendientes de validación</h1>
-      <p>Revisa el pago y valida la creación de usuarios en QUIZORA.</p>
+<main class="admin-shell">
+  <header class="admin-header">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">Q</div>
+      <div>
+        <p class="eyebrow">Panel privado</p>
+        <h1>Validación de suscripciones</h1>
+      </div>
     </div>
-    <span>Panel de administración QUIZORA Support</span>
-  </div>
+
+    <div class="secure-badge" aria-label="Zona administrativa protegida">
+      <span class="secure-dot"></span>
+      Acceso administrativo
+    </div>
+  </header>
+
+  <section class="intro-card" aria-labelledby="panel-title">
+    <div>
+      <p class="eyebrow">Revisión de pagos</p>
+      <h2 id="panel-title">Solicitudes pendientes</h2>
+      <p>
+        Revisa los datos, confirma el pago Yape y crea la cuenta del estudiante
+        solo cuando la información sea correcta.
+      </p>
+    </div>
+
+    <div class="pending-counter">
+      <span>Pendientes</span>
+      <strong>{{ suscripciones|length }}</strong>
+    </div>
+  </section>
 
   {% if suscripciones %}
-    <div class="admin-table-wrapper">
-      <table class="admin-table">
-        <thead>
-          <tr>
-            <th>Nombre</th>
-            <th>Apellido</th>
-            <th>Especialidad</th>
-            <th>Código Yape</th>
-            <th>Datos</th>
-            <th>Acción</th>
-          </tr>
-        </thead>
+  <section class="subscription-list" aria-label="Suscripciones pendientes">
+    {% for s in suscripciones %}
+    <article class="subscription-card">
+      <div class="card-top">
+        <div class="person">
+          <div class="avatar" aria-hidden="true">
+            {{ (s.nombres or "?")[0]|upper }}{{ (s.primer_apellido or "?")[0]|upper }}
+          </div>
 
-        <tbody>
-          {% for s in suscripciones %}
-            <tr>
-              <td>{{ s.nombres }}</td>
-              <td>{{ s.primer_apellido }}</td>
-              <td>{{ s.especialidad | upper }}</td>
-              <td>{{ s.codigo_transaccion_yape }}</td>
+          <div>
+            <h3>{{ s.nombres|title }} {{ s.primer_apellido|title }}</h3>
+            <p>{{ s.especialidad or "Especialidad no registrada" }}</p>
+          </div>
+        </div>
 
-              <td>
-                <button
-                  type="button"
-                  class="admin-details-btn"
-                  data-nombres="{{ s.nombres }}"
-                  data-apellido="{{ s.primer_apellido }}"
-                  data-especialidad="{{ s.especialidad }}"
-                  data-dni="{{ s.dni }}"
-                  data-telefono="{{ s.telefono }}"
-                  data-yape="{{ s.codigo_transaccion_yape }}"
-                  data-usuario="{{ s.usuario_generado or '-' }}"
-                  data-password="{{ s.password_generado or '-' }}"
-                  data-fecha="{{ s.fecha_hora }}"
-                  data-id="{{ s.id_registro }}">
-                  Ver datos
-                </button>
-              </td>
+        <span class="status status-pending">Pendiente</span>
+      </div>
 
-              <td>
-                <form method="post" action="{{ url_for('validar_suscripcion') }}">
-                  <input type="hidden" name="id_registro" value="{{ s.id_registro }}">
-                  <button type="submit" class="admin-validate-btn">
-                    Validar
-                  </button>
-                </form>
-              </td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  {% else %}
-    <p class="admin-empty-message">
-      No hay suscripciones pendientes de validación en este momento.
-    </p>
-  {% endif %}
-</div>
+      <dl class="data-grid">
+        <div>
+          <dt>ID de registro</dt>
+          <dd class="mono">{{ s.id_registro }}</dd>
+        </div>
 
-<div id="details-modal" class="details-modal" hidden>
-  <div class="details-modal-backdrop" data-close-modal></div>
+        <div>
+          <dt>Fecha de solicitud</dt>
+          <dd>{{ s.fecha_hora or "-" }}</dd>
+        </div>
 
-  <section class="details-modal-content" role="dialog" aria-modal="true" aria-labelledby="details-modal-title">
-    <div class="details-modal-header">
-      <h2 id="details-modal-title">Datos de la suscripción</h2>
-      <button type="button" class="details-modal-close" data-close-modal aria-label="Cerrar">
-        ×
-      </button>
-    </div>
+        <div>
+          <dt>DNI</dt>
+          <dd class="mono masked-data" data-sensitive="{{ s.dni }}">
+            {{ s.dni[:2] }}******{{ s.dni[-2:] if s.dni else "" }}
+          </dd>
+        </div>
 
-    <dl class="details-list">
-      <div>
-        <dt>ID de registro</dt>
-        <dd id="detail-id"></dd>
+        <div>
+          <dt>Teléfono</dt>
+          <dd>{{ s.telefono or "No registrado" }}</dd>
+        </div>
+
+        <div>
+          <dt>Código Yape</dt>
+          <dd class="mono">{{ s.codigo_transaccion_yape or "-" }}</dd>
+        </div>
+
+        <div>
+          <dt>Especialidad</dt>
+          <dd>{{ s.especialidad or "-" }}</dd>
+        </div>
+      </dl>
+
+      <details class="credentials-box">
+        <summary>Ver credenciales generadas</summary>
+
+        <div class="credentials-content">
+          <div>
+            <span>Usuario</span>
+            <code>{{ s.usuario_generado or "Aún no generado" }}</code>
+          </div>
+
+          <div>
+            <span>Contraseña temporal</span>
+            <code class="password-value" data-password="{{ s.password_generado or '' }}">
+              {% if s.password_generado %}
+                •••••••••••••
+              {% else %}
+                Aún no generada
+              {% endif %}
+            </code>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          class="text-button show-password"
+          data-target="password-{{ loop.index }}"
+          data-password="{{ s.password_generado or '' }}"
+        >
+          Mostrar contraseña temporal
+        </button>
+        <code id="password-{{ loop.index }}" class="password-reveal" hidden></code>
+      </details>
+
+      <div class="card-actions">
+        <button
+          type="button"
+          class="btn btn-secondary open-review"
+          data-name="{{ s.nombres|title }} {{ s.primer_apellido|title }}"
+          data-dni="{{ s.dni }}"
+          data-phone="{{ s.telefono or 'No registrado' }}"
+          data-yape="{{ s.codigo_transaccion_yape or '-' }}"
+          data-user="{{ s.usuario_generado or 'Aún no generado' }}"
+          data-password="{{ s.password_generado or 'Aún no generada' }}"
+          data-specialty="{{ s.especialidad or '-' }}"
+        >
+          Revisar datos
+        </button>
+
+        <form method="post" action="{{ url_for('validar_suscripcion') }}" class="validate-form">
+          <input type="hidden" name="id_registro" value="{{ s.id_registro }}">
+
+          <button
+            type="submit"
+            class="btn btn-primary"
+            data-name="{{ s.nombres|title }} {{ s.primer_apellido|title }}"
+            data-user="{{ s.usuario_generado or 'sin usuario' }}"
+          >
+            Validar y crear cuenta
+          </button>
+        </form>
       </div>
-      <div>
-        <dt>Nombres</dt>
-        <dd id="detail-nombres"></dd>
-      </div>
-      <div>
-        <dt>Primer apellido</dt>
-        <dd id="detail-apellido"></dd>
-      </div>
-      <div>
-        <dt>Especialidad</dt>
-        <dd id="detail-especialidad"></dd>
-      </div>
-      <div>
-        <dt>DNI</dt>
-        <dd id="detail-dni"></dd>
-      </div>
-      <div>
-        <dt>Teléfono</dt>
-        <dd id="detail-telefono"></dd>
-      </div>
-      <div>
-        <dt>Código Yape</dt>
-        <dd id="detail-yape"></dd>
-      </div>
-      <div>
-        <dt>Usuario generado</dt>
-        <dd id="detail-usuario"></dd>
-      </div>
-      <div>
-        <dt>Contraseña generada</dt>
-        <dd id="detail-password"></dd>
-      </div>
-      <div>
-        <dt>Fecha de solicitud</dt>
-        <dd id="detail-fecha"></dd>
-      </div>
-    </dl>
+    </article>
+    {% endfor %}
   </section>
-</div>
 
-<script>
-  document.addEventListener("DOMContentLoaded", function () {
-    const modal = document.getElementById("details-modal");
-    const closeButtons = document.querySelectorAll("[data-close-modal]");
-    const detailButtons = document.querySelectorAll(".admin-details-btn");
+  {% else %}
+  <section class="empty-state">
+    <div class="empty-icon" aria-hidden="true">✓</div>
+    <h2>No hay validaciones pendientes</h2>
+    <p>Las nuevas solicitudes de suscripción aparecerán aquí para su revisión.</p>
+  </section>
+  {% endif %}
+</main>
 
-    const fields = {
-      id: document.getElementById("detail-id"),
-      nombres: document.getElementById("detail-nombres"),
-      apellido: document.getElementById("detail-apellido"),
-      especialidad: document.getElementById("detail-especialidad"),
-      dni: document.getElementById("detail-dni"),
-      telefono: document.getElementById("detail-telefono"),
-      yape: document.getElementById("detail-yape"),
-      usuario: document.getElementById("detail-usuario"),
-      password: document.getElementById("detail-password"),
-      fecha: document.getElementById("detail-fecha")
-    };
+<dialog id="review-modal" class="review-modal">
+  <div class="modal-header">
+    <div>
+      <p class="eyebrow">Revisión previa</p>
+      <h2 id="modal-name">Datos de suscripción</h2>
+    </div>
+    <button type="button" class="icon-close" data-close-modal aria-label="Cerrar">×</button>
+  </div>
 
-    function cerrarModal() {
-      modal.hidden = true;
+  <div class="modal-data">
+    <div><span>Especialidad</span><strong id="modal-specialty"></strong></div>
+    <div><span>DNI</span><strong class="mono" id="modal-dni"></strong></div>
+    <div><span>Teléfono</span><strong id="modal-phone"></strong></div>
+    <div><span>Código Yape</span><strong class="mono" id="modal-yape"></strong></div>
+    <div><span>Usuario generado</span><strong class="mono" id="modal-user"></strong></div>
+    <div><span>Contraseña temporal</span><strong class="mono" id="modal-password"></strong></div>
+  </div>
+
+  <p class="security-note">
+    Confirma que el pago fue verificado antes de crear la cuenta en QUIZORA.
+  </p>
+</dialog>
+
+<dialog id="confirm-modal" class="review-modal confirm-modal">
+  <div class="modal-header">
+    <div>
+      <p class="eyebrow">Acción irreversible</p>
+      <h2>¿Crear cuenta en QUIZORA?</h2>
+    </div>
+    <button type="button" class="icon-close" data-close-confirm aria-label="Cerrar">×</button>
+  </div>
+
+  <p class="confirm-copy">
+    Se creará la cuenta para <strong id="confirm-name"></strong> con el usuario
+    <code id="confirm-user"></code>. Verifica primero el pago de Yape.
+  </p>
+
+  <div class="confirm-actions">
+    <button type="button" class="btn btn-secondary" data-close-confirm>Cancelar</button>
+    <button type="button" class="btn btn-primary" id="confirm-submit">
+      Sí, crear cuenta
+    </button>
+  </div>
+</dialog>
+
+<style>
+  :root {
+    --bg: #f5f7fb;
+    --surface: #ffffff;
+    --surface-soft: #f8fafc;
+    --text: #172033;
+    --muted: #667085;
+    --border: #e3e8f1;
+    --primary: #075e54;
+    --primary-hover: #04473f;
+    --primary-soft: #e5f4f1;
+    --warning: #9a6700;
+    --warning-soft: #fff5d6;
+    --shadow: 0 12px 32px rgba(19, 36, 61, 0.08);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: Arial, sans-serif;
+  }
+
+  .admin-shell {
+    width: min(1180px, calc(100% - 32px));
+    margin: 0 auto;
+    padding: 32px 0 64px;
+  }
+
+  .admin-header,
+  .card-top,
+  .card-actions,
+  .modal-header,
+  .confirm-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .brand,
+  .person {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .brand-mark,
+  .avatar {
+    display: grid;
+    place-items: center;
+    color: #fff;
+    background: var(--primary);
+    font-weight: 800;
+  }
+
+  .brand-mark {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+  }
+
+  .avatar {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    font-size: 14px;
+  }
+
+  h1, h2, h3, p { margin: 0; }
+
+  h1 { font-size: clamp(1.45rem, 3vw, 2rem); }
+  h2 { font-size: clamp(1.2rem, 2vw, 1.55rem); }
+  h3 { font-size: 1.05rem; }
+
+  .eyebrow {
+    margin-bottom: 4px;
+    color: var(--muted);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .secure-badge,
+  .status {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    font-weight: 700;
+  }
+
+  .secure-badge {
+    color: var(--primary);
+    background: var(--primary-soft);
+  }
+
+  .secure-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--primary);
+    border-radius: 50%;
+  }
+
+  .intro-card {
+    display: flex;
+    justify-content: space-between;
+    gap: 24px;
+    margin: 28px 0;
+    padding: 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    box-shadow: var(--shadow);
+  }
+
+  .intro-card p:not(.eyebrow) {
+    margin-top: 10px;
+    color: var(--muted);
+    max-width: 62ch;
+  }
+
+  .pending-counter {
+    min-width: 120px;
+    padding: 16px;
+    color: var(--primary);
+    text-align: center;
+    background: var(--primary-soft);
+    border-radius: 14px;
+  }
+
+  .pending-counter span {
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .pending-counter strong {
+    display: block;
+    font-size: 2rem;
+  }
+
+  .subscription-list {
+    display: grid;
+    gap: 16px;
+  }
+
+  .subscription-card {
+    padding: 22px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    box-shadow: 0 4px 14px rgba(19, 36, 61, 0.04);
+  }
+
+  .person p {
+    margin-top: 4px;
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+
+  .status-pending {
+    color: var(--warning);
+    background: var(--warning-soft);
+  }
+
+  .data-grid,
+  .modal-data {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+    margin: 22px 0;
+  }
+
+  .data-grid div,
+  .modal-data div {
+    padding: 12px;
+    background: var(--surface-soft);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+  }
+
+  dt,
+  .modal-data span,
+  .credentials-content span {
+    display: block;
+    margin-bottom: 4px;
+    color: var(--muted);
+    font-size: 0.76rem;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  dd {
+    margin: 0;
+    font-weight: 700;
+  }
+
+  .mono,
+  code {
+    font-family: "Courier New", monospace;
+  }
+
+  .credentials-box {
+    padding: 16px;
+    background: #fcfdff;
+    border: 1px dashed #cdd7e5;
+    border-radius: 12px;
+  }
+
+  .credentials-box summary {
+    cursor: pointer;
+    color: var(--primary);
+    font-weight: 700;
+  }
+
+  .credentials-content {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    margin-top: 16px;
+  }
+
+  code {
+    display: inline-block;
+    color: #243147;
+    font-size: 0.92rem;
+    font-weight: 700;
+    word-break: break-all;
+  }
+
+  .text-button {
+    margin-top: 14px;
+    padding: 0;
+    color: var(--primary);
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    font-weight: 700;
+  }
+
+  .password-reveal {
+    margin-top: 10px;
+    padding: 8px 10px;
+    background: var(--warning-soft);
+    border-radius: 8px;
+  }
+
+  .card-actions {
+    margin-top: 20px;
+    justify-content: flex-end;
+  }
+
+  .btn {
+    min-height: 44px;
+    padding: 10px 16px;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 0.92rem;
+    font-weight: 800;
+  }
+
+  .btn-primary {
+    color: #fff;
+    background: var(--primary);
+  }
+
+  .btn-primary:hover { background: var(--primary-hover); }
+
+  .btn-secondary {
+    color: var(--text);
+    background: #fff;
+    border-color: var(--border);
+  }
+
+  .btn-secondary:hover { background: var(--surface-soft); }
+
+  .empty-state {
+    padding: 64px 24px;
+    text-align: center;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+  }
+
+  .empty-icon {
+    display: grid;
+    width: 48px;
+    height: 48px;
+    margin: 0 auto 14px;
+    place-items: center;
+    color: var(--primary);
+    background: var(--primary-soft);
+    border-radius: 50%;
+    font-size: 1.4rem;
+    font-weight: 800;
+  }
+
+  .empty-state p {
+    margin: 8px auto 0;
+    color: var(--muted);
+  }
+
+  .review-modal {
+    width: min(620px, calc(100% - 28px));
+    padding: 24px;
+    color: var(--text);
+    background: var(--surface);
+    border: 0;
+    border-radius: 18px;
+    box-shadow: 0 24px 70px rgba(9, 20, 39, 0.26);
+  }
+
+  .review-modal::backdrop {
+    background: rgba(16, 24, 40, 0.56);
+  }
+
+  .icon-close {
+    width: 40px;
+    height: 40px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    background: #fff;
+    cursor: pointer;
+    font-size: 1.35rem;
+  }
+
+  .security-note,
+  .confirm-copy {
+    margin-top: 20px;
+    padding: 14px;
+    color: #694b00;
+    background: var(--warning-soft);
+    border-radius: 10px;
+    line-height: 1.5;
+  }
+
+  @media (max-width: 720px) {
+    .admin-shell {
+      width: min(100% - 24px, 1180px);
+      padding-top: 20px;
     }
 
-    detailButtons.forEach(function (button) {
-      button.addEventListener("click", function () {
-        fields.id.textContent = button.dataset.id || "-";
-        fields.nombres.textContent = button.dataset.nombres || "-";
-        fields.apellido.textContent = button.dataset.apellido || "-";
-        fields.especialidad.textContent = (button.dataset.especialidad || "-").toUpperCase();
-        fields.dni.textContent = button.dataset.dni || "-";
-        fields.telefono.textContent = button.dataset.telefono || "-";
-        fields.yape.textContent = button.dataset.yape || "-";
-        fields.usuario.textContent = button.dataset.usuario || "-";
-        fields.password.textContent = button.dataset.password || "-";
-        fields.fecha.textContent = button.dataset.fecha || "-";
+    .admin-header,
+    .intro-card,
+    .card-top,
+    .card-actions {
+      align-items: stretch;
+      flex-direction: column;
+    }
 
-        modal.hidden = false;
-      });
-    });
+    .secure-badge,
+    .status {
+      align-self: flex-start;
+    }
 
-    closeButtons.forEach(function (button) {
-      button.addEventListener("click", cerrarModal);
-    });
+    .data-grid,
+    .modal-data,
+    .credentials-content {
+      grid-template-columns: 1fr;
+    }
 
-    document.addEventListener("keydown", function (event) {
-      if (event.key === "Escape" && !modal.hidden) {
-        cerrarModal();
-      }
+    .card-actions .btn,
+    .card-actions form,
+    .card-actions form .btn {
+      width: 100%;
+    }
+
+    .pending-counter {
+      min-width: 0;
+    }
+  }
+</style>
+
+<script>
+  const reviewModal = document.getElementById("review-modal");
+  const confirmModal = document.getElementById("confirm-modal");
+  let pendingForm = null;
+
+  document.querySelectorAll(".open-review").forEach((button) => {
+    button.addEventListener("click", () => {
+      document.getElementById("modal-name").textContent = button.dataset.name;
+      document.getElementById("modal-specialty").textContent = button.dataset.specialty;
+      document.getElementById("modal-dni").textContent = button.dataset.dni;
+      document.getElementById("modal-phone").textContent = button.dataset.phone;
+      document.getElementById("modal-yape").textContent = button.dataset.yape;
+      document.getElementById("modal-user").textContent = button.dataset.user;
+      document.getElementById("modal-password").textContent = button.dataset.password;
+      reviewModal.showModal();
     });
+  });
+
+  document.querySelectorAll("[data-close-modal]").forEach((button) => {
+    button.addEventListener("click", () => reviewModal.close());
+  });
+
+  document.querySelectorAll(".show-password").forEach((button) => {
+    button.addEventListener("click", () => {
+      const output = document.getElementById(button.dataset.target);
+      output.textContent = button.dataset.password;
+      output.hidden = !output.hidden;
+      button.textContent = output.hidden
+        ? "Mostrar contraseña temporal"
+        : "Ocultar contraseña temporal";
+    });
+  });
+
+  document.querySelectorAll(".validate-form").forEach((form) => {
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      pendingForm = form;
+
+      const button = form.querySelector("button[type='submit']");
+      document.getElementById("confirm-name").textContent = button.dataset.name;
+      document.getElementById("confirm-user").textContent = button.dataset.user;
+
+      confirmModal.showModal();
+    });
+  });
+
+  document.querySelectorAll("[data-close-confirm]").forEach((button) => {
+    button.addEventListener("click", () => confirmModal.close());
+  });
+
+  document.getElementById("confirm-submit").addEventListener("click", () => {
+    if (pendingForm) {
+      pendingForm.submit();
+    }
   });
 </script>
 {% endblock %}
