@@ -68,7 +68,8 @@
         <div>
           <dt>DNI</dt>
           <dd class="mono masked-data" data-sensitive="{{ s.dni }}">
-            {{ s.dni[:2] }}******{{ s.dni[-2:] if s.dni else "" }}
+            {% set dni_texto = s.dni|string %}
+            {{ dni_texto[:2] }}******{{ dni_texto[-2:] }}
           </dd>
         </div>
 
@@ -125,7 +126,7 @@
           type="button"
           class="btn btn-secondary open-review"
           data-name="{{ s.nombres|title }} {{ s.primer_apellido|title }}"
-          data-dni="{{ s.dni }}"
+          data-dni="{{ s.dni|string }}"
           data-phone="{{ s.telefono or 'No registrado' }}"
           data-yape="{{ s.codigo_transaccion_yape or '-' }}"
           data-user="{{ s.usuario_generado or 'Aún no generado' }}"
