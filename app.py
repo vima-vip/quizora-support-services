@@ -205,17 +205,8 @@ def registro_suscripcion():
             ), 200
 
         # 2. Si no hay duplicado, generamos credenciales antes de guardar la fila.
-        username, password = generar_credenciales_suscripcion(
-          nombres=nombres,
-          primer_apellido=primer_apellido,
-          dni=dni
-        )  
-        datos["usuario_generado"] = username
-        datos["password_generado"] = password
-
-
-        # 3. Guardamos la suscripción junto con sus credenciales en columnas J y K.
         registrar_venta(datos)
+        
         return render_template("modal_pago.html", enviado_ok=True)
         
     except Exception as e:
