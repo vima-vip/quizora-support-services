@@ -7,14 +7,17 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
 # Nombres de documentos y hojas
-FAQ_DOC_NAME = "AUTO_QUIZORA"          # nombre del documento (libro) de FAQ
-FAQ_SHEET_NAME = "BD"                  # nombre de la hoja/tab dentro de AUTO_QUIZORA
+FAQ_DOC_NAME = "AUTO_QUIZORA"
+FAQ_SHEET_NAME = "BD"
 
-VENTAS_DOC_NAME = "QUIZORA_Ventas"     # nombre del documento de ventas
-VENTAS_SHEET_NAME = "REGISTROS_SUSCRIPCION"  # hoja/tab de ventas
+VENTAS_DOC_NAME = "QUIZORA_Ventas"
+VENTAS_SHEET_NAME = "REGISTROS_SUSCRIPCION"
 
-# Ruta del service account (puedes usar variable de entorno en Render)
-SERVICE_ACCOUNT_PATH = os.getenv("GSPREAD_SERVICE_ACCOUNT_PATH", "service_account.json")
+# Ruta del service account
+SERVICE_ACCOUNT_PATH = os.getenv(
+    "GSPREAD_SERVICE_ACCOUNT_PATH",
+    "service_account.json"
+)
 
 scope = [
     "https://spreadsheets.google.com/feeds",
@@ -37,8 +40,8 @@ def buscar_faq(mensaje: str) -> Optional[Dict]:
     gc = get_client()
     sh = gc.open(FAQ_DOC_NAME)
     sheet = sh.worksheet(FAQ_SHEET_NAME)
-    rows = sheet.get_all_records()  # espera columnas: keyword, respuesta, activa
 
+    rows = sheet.get_all_records()
     mensaje_lower = mensaje.lower()
 
     for row in rows:
@@ -46,6 +49,7 @@ def buscar_faq(mensaje: str) -> Optional[Dict]:
             continue
 
         keyword = str(row.get("keyword", "")).lower().strip()
+
         if keyword and keyword in mensaje_lower:
             return {
                 "respuesta": row.get("respuesta", ""),
@@ -56,25 +60,22 @@ def buscar_faq(mensaje: str) -> Optional[Dict]:
 
 
 def obtener_keywords_quizora() -> List[Dict]:
-    """
-    Devuelve todos los FAQs de AUTO_QUIZORA/BD como lista de dicts.
-    Cada dict incluye al menos: keyword, respuesta, activa.
-    Esto se usa para el match borroso (80 % de similitud).
-    """
     gc = get_client()
     sh = gc.open(FAQ_DOC_NAME)
     sheet = sh.worksheet(FAQ_SHEET_NAME)
 
-    # get_all_records ya te devuelve una lista de dicts según los encabezados
-    rows = sheet.get_all_records()  # columnas: keyword, respuesta, activa, etc.
-    return rows
+    return sheet.get_all_records()
 
 
 # ===== Ventas (QUIZORA_Ventas / REGISTROS_SUSCRIPCION) =====
 
 def registrar_venta(datos: dict):
     """
-    datos debe contener: nombres, primer_apellido, especialidad, dni, codigo_transaccion_yape
+    Registra una suscripción pendiente.
+
+    datos debe incluir:
+    nombres, primer_apellido, especialidad, dni, telefono,
+    codigo_transaccion_yape, usuario_generado y password_generado.
     """
     gc = get_client()
     sh = gc.open(VENTAS_DOC_NAME)
@@ -84,47 +85,65 @@ def registrar_venta(datos: dict):
     fecha_hora = datetime.utcnow().isoformat()
 
     fila = [
-        id_registro,                         # id_registro
-        fecha_hora,                          # fecha_hora
-        datos.get("nombres", ""),            # nombres
-        datos.get("primer_apellido", ""),    # primer_apellido
-        datos.get("especialidad", ""),       # especialidad
-        datos.get("dni", ""),                # dni
-        datos.get("telefono", "").strip(),        # G: telefono
-        datos.get("codigo_transaccion_yape", ""),  # codigo_transaccion_yape
-        "Pendiente",                         # estado_verificacion
-        "",                                  # usuario_generado
-        "",                                  # password_generado
-        "",                                  # fecha_activacion
-        ""                                   # notas_admin
+        id_registro,                                     # A: id_registro
+        fecha_hora,                                      # B: fecha_hora
+        datos.get("nombres", "").strip(),                # C: nombres
+        datos.get("primer_apellido", "").strip(),        # D: primer_apellido
+        datos.get("especialidad", "").strip(),           # E: especialidad
+        datos.get("dni", "").strip(),                    # F: dni
+        datos.get("telefono", "").strip(),               # G: telefono
+        datos.get("codigo_transaccion_yape", "").strip(),# H: codigo_transaccion_yape
+        "Pendiente",                                     # I: estado_verificacion
+        datos.get("usuario_generado", "").strip(),       # J: usuario_generado
+        datos.get("password_generado", "").strip(),      # K: password_generado
+        "",                                              # L: fecha_activacion
+        ""                                               # M: notas_admin
     ]
 
-    sheet.append_row(fila)
+    sheet.append_row(fila, value_input_option="RAW")
 
 
 def obtener_registros_ventas() -> List[Dict]:
     gc = get_client()
     sh = gc.open(VENTAS_DOC_NAME)
     sheet = sh.worksheet(VENTAS_SHEET_NAME)
+
     return sheet.get_all_records()
 
 
 def actualizar_registro_ventas(
     row_index: int,
     usuario_generado: str,
-    password_generado_hash: str,
+    password_generado: str,
     fecha_activacion_iso: str
 ):
+    """
+    Flujo opcional directo a Neon.
+    Si lo usas, escribe el usuario y password indicado en J y K.
+    """
     gc = get_client()
     sh = gc.open(VENTAS_DOC_NAME)
     sheet = sh.worksheet(VENTAS_SHEET_NAME)
-    sheet.update_cell(row_index, 10, usuario_generado)        # usuario_generado
-    sheet.update_cell(row_index, 11, password_generado_hash) # password_generado
-    sheet.update_cell(row_index, 12, fecha_activacion_iso)   # fecha_activacion
+
+    sheet.batch_update([
+        {
+            "range": f"J{row_index}",
+            "values": [[usuario_generado]]
+        },
+        {
+            "range": f"K{row_index}",
+            "values": [[password_generado]]
+        },
+        {
+            "range": f"L{row_index}",
+            "values": [[fecha_activacion_iso]]
+        }
+    ])
 
 
 def actualizar_notas_admin(row_index: int, nota: str):
     gc = get_client()
     sh = gc.open(VENTAS_DOC_NAME)
     sheet = sh.worksheet(VENTAS_SHEET_NAME)
-    sheet.update_cell(row_index, 13, nota)  # notas_admin
+
+    sheet.update_cell(row_index, 13, nota)
