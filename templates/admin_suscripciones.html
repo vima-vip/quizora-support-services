@@ -5,20 +5,30 @@
 {% block content %}
 <main class="admin-shell">
   <header class="admin-header">
-    <div class="brand">
-      <div class="brand-mark" aria-hidden="true">Q</div>
-      <div>
-        <p class="eyebrow">Panel privado</p>
-        <h1>Validación de suscripciones</h1>
-      </div>
-    </div>
+  <div class="brand">
+    <div class="brand-mark" aria-hidden="true">Q</div>
 
+    <div>
+      <p class="eyebrow">Panel privado</p>
+      <h1>Validación de suscripciones</h1>
+    </div>
+  </div>
+
+  <div class="header-actions">
     <div class="secure-badge" aria-label="Zona administrativa protegida">
       <span class="secure-dot"></span>
       Acceso administrativo
     </div>
-  </header>
 
+    <form action="{{ url_for('admin_logout') }}" method="post" class="logout-form">
+      <button type="submit" class="btn btn-secondary">
+        Cerrar sesión
+      </button>
+    </form>
+  </div>
+</header>
+
+  
   <section class="intro-card" aria-labelledby="panel-title">
     <div>
       <p class="eyebrow">Revisión de pagos</p>
