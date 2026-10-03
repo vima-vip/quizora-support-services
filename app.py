@@ -4,6 +4,8 @@ from datetime import datetime
 import os
 import re
 import requests
+import secrets
+import string
 
 from soporte import procesar_mensaje
 from sheets_client import (
@@ -23,6 +25,47 @@ SPREADSHEET_ID = os.getenv("QUIZORA_VENTAS_SHEET_ID")  # puedes omitir si usas V
 QUIZORA_API_URL = os.getenv("QUIZORA_API_URL")
 ADMIN_API_TOKEN = os.getenv("ADMIN_API_TOKEN")
 
+
+def generar_credenciales_suscripcion(
+    nombres: str,
+    primer_apellido: str,
+    dni: str
+) -> tuple[str, str]:
+    nombre_limpio = re.sub(
+        r"[^A-Za-zÁÉÍÓÚáéíóúÑñ]",
+        "",
+        nombres
+    ).strip()
+
+    apellido_limpio = re.sub(
+        r"[^A-Za-zÁÉÍÓÚáéíóúÑñ]",
+        "",
+        primer_apellido
+    ).strip()
+
+    dni_limpio = re.sub(r"\D", "", dni)
+
+    if not nombre_limpio or not apellido_limpio or len(dni_limpio) != 8:
+        raise ValueError(
+            "No se pudieron generar credenciales: revisa nombre, apellido y DNI."
+        )
+
+    inicial_nombre = nombre_limpio[0].upper()
+    inicial_apellido = apellido_limpio[0].upper()
+
+    caracteres_especiales = "@#$%*&!"
+    caracter_especial = secrets.choice(caracteres_especiales)
+
+    username = f"{nombre_limpio.lower()}{apellido_limpio.lower()}"
+
+    password = (
+        f"{dni_limpio}"
+        f"{inicial_nombre}"
+        f"{inicial_apellido}"
+        f"{caracter_especial}"
+    )
+
+    return username, password
 
 def obtener_suscripciones_pendientes():
     """
