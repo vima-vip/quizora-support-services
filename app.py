@@ -1,8 +1,19 @@
-from flask import Flask, request, jsonify, render_template, redirect, url_for
+from flask import (
+    Flask,
+    request,
+    jsonify,
+    render_template,
+    redirect,
+    url_for,
+    session,
+    flash
+)
 from flask_cors import CORS
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 import re
+import secrets
+from functools import wraps
 import requests
 import secrets
 import string
@@ -86,6 +97,25 @@ def obtener_suscripciones_pendientes():
 app = Flask(__name__, template_folder="templates", static_folder="static")
 CORS(app)
 
+app.config.update(
+    SECRET_KEY=os.environ.get("FLASK_SECRET_KEY"),
+    SESSION_COOKIE_NAME="quizora_admin_session",
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SECURE=True,
+    SESSION_COOKIE_SAMESITE="Lax",
+    PERMANENT_SESSION_LIFETIME=timedelta(minutes=30),
+)
+
+ADMIN_PANEL_PASSWORD = os.environ.get("ADMIN_PANEL_PASSWORD")
+
+def admin_required(view):
+    @wraps(view)
+    def wrapped_view(*args, **kwargs):
+        if not session.get("admin_authenticated"):
+            return redirect(url_for("admin_login"))
+        return view(*args, **kwargs)
+
+    return wrapped_view
 
 # Healthcheck
 @app.get("/")
@@ -217,8 +247,38 @@ def registro_suscripcion():
         ), 500
 
 
+@app.route("/admin/login", methods=["GET", "POST"])
+def admin_login():
+    if session.get("admin_authenticated"):
+        return redirect(url_for("admin_suscripciones"))
+
+    error = None
+
+    if request.method == "POST":
+        password = request.form.get("password", "")
+
+        if not ADMIN_PANEL_PASSWORD:
+            error = "Configuración incompleta: falta ADMIN_PANEL_PASSWORD."
+        elif secrets.compare_digest(password, ADMIN_PANEL_PASSWORD):
+            session.clear()
+            session["admin_authenticated"] = True
+            session.permanent = True
+            return redirect(url_for("admin_suscripciones"))
+        else:
+            error = "Contraseña incorrecta."
+
+    return render_template("admin_login.html", error=error)
+
+
+@app.post("/admin/logout")
+def admin_logout():
+    session.clear()
+    return redirect(url_for("admin_login"))
+
+
 # Dashboard admin
 @app.get("/admin/suscripciones")
+@admin_required
 def admin_suscripciones():
     suscripciones = obtener_suscripciones_pendientes()
     return render_template("admin_suscripciones.html", suscripciones=suscripciones)
@@ -226,6 +286,7 @@ def admin_suscripciones():
 
 # Acción de VALIDAR
 @app.post("/admin/validar-suscripcion")
+@admin_required
 def validar_suscripcion():
     id_registro = request.form.get("id_registro", "").strip()
 
